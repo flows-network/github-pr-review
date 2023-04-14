@@ -15,7 +15,7 @@ use std::env;
 //  The soft character limit of the input context size
 //   the max token size or word count for GPT4 is 8192
 //   the max token size or word count for GPT35Turbo is 4096
-static CHAR_SOFT_LIMIT : usize = 9000;
+static CHAR_SOFT_LIMIT : usize = 6000;
 static MODEL : ChatModel = ChatModel::GPT35Turbo;
 // static MODEL : ChatModel = ChatModel::GPT4;
 
@@ -125,7 +125,7 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "Please review the following source code and look for potential problems.\n\n'''".to_string() + t_file_as_text + "\n'''";
+                let question = "Please review the following source code and look for potential problems. If the following is not computer source code, just answer \"This document does not appear to be source code.\"\n\n'''".to_string() + t_file_as_text + "\n'''";
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
@@ -139,7 +139,7 @@ async fn handler(
                 };
                 let patch_as_text = f.patch.unwrap();
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
-                let question = "The following is a patch for the above source code. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
+                let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
