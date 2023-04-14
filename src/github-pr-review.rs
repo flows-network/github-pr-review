@@ -111,10 +111,10 @@ async fn handler(
                 let mut writer = Vec::new();
                 let _ = Request::new(&file_uri)
                     .method(Method::GET)
-                    .header("Accept", "text/plain")
+                    .header("Accept", "*/*")
                     .header("User-Agent", "Flows Network Connector")
                     .send(&mut writer)
-                    .map_err(|_e| {})
+                    .map_err(|e| { resp.push_str(&e.to_string()); })
                     .unwrap();
                 let file_as_text = String::from_utf8_lossy(&writer);
                 let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
