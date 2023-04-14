@@ -1,10 +1,10 @@
 [package]
-name = "github-pr-summary"
+name = "github-pr-review"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-path = "src/github-pr-summary.rs"
+path = "src/github-pr-review.rs"
 crate-type = ["cdylib"]
 
 [dependencies]
@@ -19,3 +19,4 @@ lazy_static = "1.4.0"
 regex = "1.7.1"
 openai-flows = "0.4"
 words-count = "0.1.4"
+http_req_wasi = { version = "0.10.2", features = ["wasmedge_ssl"] }
