@@ -126,6 +126,10 @@ async fn handler(
                     retry_times: 3,
                 };
                 let question = "Please review the following source code and look for potential problems.\n\n'''".to_string() + t_file_as_text + "\n'''";
+                resp.push_str(f.blob_url.as_str());
+                resp.push_str("\n");
+                resp.push_str(f.contents_url.as_str());
+                resp.push_str("\n");
                 resp.push_str(&file_uri.to_string());
                 resp.push_str("\n\n");
                 resp.push_str(&question);
