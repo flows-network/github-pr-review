@@ -111,7 +111,7 @@ async fn handler(
                 let mut writer = Vec::new();
                 let _ = Request::new(&file_uri)
                     .method(Method::GET)
-                    .header("Accept", "application/vnd.github+json")
+                    .header("Accept", "text/plain")
                     .header("User-Agent", "Flows Network Connector")
                     .send(&mut writer)
                     .map_err(|_e| {})
