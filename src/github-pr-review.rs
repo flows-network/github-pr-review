@@ -106,8 +106,16 @@ async fn handler(
                 resp.push_str("](");
                 resp.push_str(f.blob_url.as_str());
                 resp.push_str(")\n\n");
-
-                let file_uri = Uri::try_from(f.contents_url.as_str()).unwrap();
+                
+                // The f.raw_url is a redirect. So, we need to construct our own here.
+                let contents_url = f.contents_url.as_str();
+                let hash = &contents_url[(contents_url.len() - 40)..];
+                let raw_url = format!(
+                    "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, &f.filename
+                );
+                resp.push_str(&raw_url);
+                resp.push_str("\n\n");
+                let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
                 let _ = Request::new(&file_uri)
                     .method(Method::GET)
@@ -125,7 +133,7 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "Please review the following source code and look for potential problems. If the following is not computer source code, just answer \"This document does not appear to be source code\" and nothing else.\n\n'''".to_string() + t_file_as_text + "\n'''";
+                let question = "Please review the following source code and look for potential problems. If the following is not computer source code, just answer \"This document does not appear to be source code\" and nothing else.\n\n'''\n".to_string() + t_file_as_text + "\n'''";
                 resp.push_str(&question);
                 resp.push_str("\n\n");
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
