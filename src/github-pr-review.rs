@@ -114,7 +114,7 @@ async fn handler(
                     .header("Accept", "*/*")
                     .header("User-Agent", "Flows Network Connector")
                     .send(&mut writer)
-                    .map_err(|e| { resp.push_str(&e.to_string()); })
+                    .map_err(|_e| {})
                     .unwrap();
                 let file_as_text = String::from_utf8_lossy(&writer);
                 let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
@@ -126,6 +126,10 @@ async fn handler(
                     retry_times: 3,
                 };
                 let question = "Please review the following source code and look for potential problems.\n\n'''".to_string() + t_file_as_text + "\n'''";
+                resp.push_str(&file_uri.to_string());
+                resp.push_str("\n\n");
+                resp.push_str(&question);
+                resp.push_str("\n\n");
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
