@@ -125,7 +125,9 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "Please review the following source code and look for potential problems. If the following is not computer source code, just answer \"This document does not appear to be source code.\"\n\n'''".to_string() + t_file_as_text + "\n'''";
+                let question = "Please review the following source code and look for potential problems. If the following is not computer source code, just answer \"This document does not appear to be source code\" and nothing else.\n\n'''".to_string() + t_file_as_text + "\n'''";
+                resp.push_str(&question);
+                resp.push_str("\n\n");
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
