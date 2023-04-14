@@ -117,6 +117,7 @@ async fn handler(
                     .map_err(|_e| {})
                     .unwrap();
                 let file_as_text = String::from_utf8_lossy(&writer);
+                let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
 
                 let co = ChatOptions {
                     model: MODEL,
@@ -124,8 +125,8 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "The following is a source code file. Please look for potential problems.\n\n".to_string() + &file_as_text;
-                if let Some(r) = chat_completion_default_key(&chat_id, truncate(&question, CHAR_SOFT_LIMIT), &co) {
+                let question = "Please review the following source code and look for potential problems.\n\n'''".to_string() + t_file_as_text + "\n'''";
+                if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
@@ -136,8 +137,10 @@ async fn handler(
                     system_prompt: None,
                     retry_times: 3,
                 };
-                let question = "The following is a patch for the above source code. Please summarize key changes.\n\n".to_string() + &f.patch.unwrap();
-                if let Some(r) = chat_completion_default_key(&chat_id, truncate(&question, CHAR_SOFT_LIMIT), &co) {
+                let patch_as_text = f.patch.unwrap();
+                let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
+                let question = "The following is a patch for the above source code. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
+                if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
