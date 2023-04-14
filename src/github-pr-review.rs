@@ -113,8 +113,6 @@ async fn handler(
                 let raw_url = format!(
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, &f.filename
                 );
-                resp.push_str(&raw_url);
-                resp.push_str("\n\n");
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
                 let _ = Request::new(&file_uri)
@@ -133,7 +131,7 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "Review the following source code and look for potential problems. If it is not computer source code, just answer \"This document does not appear to be source code\" and nothing else.\n\n".to_string() + t_file_as_text;
+                let question = "Review the following source code snippet and look for potential problems. If it is not computer source code, just answer \"This document does not appear to be source code\" and nothing else.\n\n```\n".to_string() + t_file_as_text + "\n```";
                 resp.push_str(&question);
                 resp.push_str("\n\n");
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
