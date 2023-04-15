@@ -52,18 +52,6 @@ async fn handler(
     payload: EventPayload,
 ) {
     let (title, pull_number, _contributor) = match payload {
-        EventPayload::PullRequestEvent(e) => {
-            if e.action != PullRequestEventAction::Opened {
-                write_error_log!("Not a Opened pull event");
-                return;
-            }
-            let p = e.pull_request;
-            (
-                p.title.unwrap_or("".to_string()),
-                p.number,
-                p.user.unwrap().login,
-            )
-        }
         EventPayload::IssueCommentEvent(e) => {
             if e.action == IssueCommentEventAction::Deleted {
                 write_error_log!("Deleted issue event");
