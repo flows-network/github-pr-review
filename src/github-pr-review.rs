@@ -101,8 +101,12 @@ async fn handler(
     match pulls.list_files(pull_number).await {
         Ok(files) => {
             for f in files.items {
+                let filename = &f.filename;
+                if filename.ends_with(".md") || filename.ends_with(".txt") || filename.ends_with(".html") || filename.ends_with(".htm") {
+                    continue;
+                }
                 resp.push_str("## [");
-                resp.push_str(&f.filename);
+                resp.push_str(filename);
                 resp.push_str("](");
                 resp.push_str(f.blob_url.as_str());
                 resp.push_str(")\n\n");
@@ -117,7 +121,7 @@ async fn handler(
                 let mut writer = Vec::new();
                 let _ = Request::new(&file_uri)
                     .method(Method::GET)
-                    .header("Accept", "*/*")
+                    .header("Accept", "plain/text")
                     .header("User-Agent", "Flows Network Connector")
                     .send(&mut writer)
                     .map_err(|_e| {})
@@ -131,9 +135,9 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "Review the following source code snippet and look for potential problems.\n\n```\n".to_string() + t_file_as_text + "\n```";
-                resp.push_str(&question);
-                resp.push_str("\n\n");
+                let question = "Review the following source code snippet and look for potential problems.\n\n".to_string() + t_file_as_text;
+                // resp.push_str(&question);
+                // resp.push_str("\n\n");
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
