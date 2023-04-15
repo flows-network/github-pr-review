@@ -140,7 +140,7 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "Review the following source code snippet and look for potential problems.\n\n".to_string() + t_file_as_text;
+                let question = "Review the following source code snippet and look for potential problems. Do NOT worry if the code snippet is incomplete at the end.\n\n".to_string() + t_file_as_text;
                 // resp.push_str(&question);
                 // resp.push_str("\n\n");
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
