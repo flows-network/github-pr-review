@@ -12,7 +12,9 @@
   </a>
 </p>
 
-[Deploy this function on flows.network](#deploy-the-pr-summary-app-for-your-github-repo), and you will get a GitHub 🤖 to review changed source code files in Pull Requests. It helps busy open source contributors understand and make decisions on PRs faster!
+[Deploy this function on flows.network](#deploy-the-pr-summary-app-for-your-github-repo), and you will get a GitHub 🤖 to review changed source code files in Pull Requests. It helps busy open source contributors understand and make decisions on PRs faster! Here are some examples!
+
+* [[Haskell] Improve WasmEdge Component Model tooling](https://github.com/second-state/witc/pull/73#issuecomment-1509586233) -- it even suggests how to rewrite the submitted code!
 
 ## How it works
 
