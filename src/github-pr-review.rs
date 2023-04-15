@@ -97,7 +97,7 @@ async fn handler(
     let octo = get_octo(Some(String::from(login)));
     let pulls = octo.pulls(owner, repo);
     let mut resp = String::new();
-    resp.push_str("Hello, I am a [serverless review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed files in this PR.\n\n------\n\n");
+    resp.push_str("Hello, I am a [serverless review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
     match pulls.list_files(pull_number).await {
         Ok(files) => {
             for f in files.items {
@@ -105,11 +105,6 @@ async fn handler(
                 if filename.ends_with(".md") || filename.ends_with(".txt") || filename.ends_with(".html") || filename.ends_with(".htm") {
                     continue;
                 }
-                resp.push_str("## [");
-                resp.push_str(filename);
-                resp.push_str("](");
-                resp.push_str(f.blob_url.as_str());
-                resp.push_str(")\n\n");
                 
                 // The f.raw_url is a redirect. So, we need to construct our own here.
                 let contents_url = f.contents_url.as_str();
@@ -127,7 +122,17 @@ async fn handler(
                     .map_err(|_e| {})
                     .unwrap();
                 let file_as_text = String::from_utf8_lossy(&writer);
+                if file_as_text.len() < 10 {
+                    // if the file is empty (e.g., a non text file) or very small, we will skip
+                    continue;
+                }
                 let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
+
+                resp.push_str("## [");
+                resp.push_str(filename);
+                resp.push_str("](");
+                resp.push_str(f.blob_url.as_str());
+                resp.push_str(")\n\n");
 
                 let co = ChatOptions {
                     model: MODEL,
