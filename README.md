@@ -12,7 +12,7 @@
   </a>
 </p>
 
-[Deploy this function on flows.network](#deploy-the-pr-summary-app-for-your-github-repo), and you will get a GitHub 🤖 to review and summarize Pull Requests. It helps busy open source contributors understand and make decisions on PRs faster! A few examples below!
+[Deploy this function on flows.network](#deploy-the-pr-summary-app-for-your-github-repo), and you will get a GitHub 🤖 to review changed source code files in Pull Requests. It helps busy open source contributors understand and make decisions on PRs faster!
 
 ## How it works
 
@@ -52,7 +52,7 @@ Fork [this repo](https://github.com/flows-network/github-pr-summary/) into your 
 Go to [flows.network](https://flows.network/) to deploy your own flow function (🤖) from the forked source code.
 
 1. Click on the "Create a Flow" button to start.
-2. Authenticate the [flows.network](https://flows.network/) to access the `github-pr-summary` repo you just forked. **NOTE: This is NOT the repo you want to install the bot on.**
+2. Authenticate the [flows.network](https://flows.network/) to access the `github-pr-review` repo you just forked. **NOTE: This is NOT the repo you want to install the bot on.**
 <img width="950" alt="image" src="https://user-images.githubusercontent.com/45785633/229329081-93728947-ad9f-44fb-85b1-067e6a0eb8ac.png">
 
 3. Click on the "Advanced" link to see more settings. Fill in the following environment variables. 
