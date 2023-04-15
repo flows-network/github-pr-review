@@ -96,6 +96,7 @@ async fn handler(
                 
                 // The f.raw_url is a redirect. So, we need to construct our own here.
                 let contents_url = f.contents_url.as_str();
+                if contents_url.len() < 40 { continue; }
                 let hash = &contents_url[(contents_url.len() - 40)..];
                 let raw_url = format!(
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, &f.filename
@@ -110,10 +111,7 @@ async fn handler(
                     .map_err(|_e| {})
                     .unwrap();
                 let file_as_text = String::from_utf8_lossy(&writer);
-                if file_as_text.len() < 10 {
-                    // if the file is empty (e.g., a non text file) or very small, we will skip
-                    continue;
-                }
+                if file_as_text.len() < 10 { continue; }
                 let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
 
                 resp.push_str("## [");
@@ -142,7 +140,8 @@ async fn handler(
                     system_prompt: None,
                     retry_times: 3,
                 };
-                let patch_as_text = f.patch.unwrap();
+                let patch_as_text = f.patch.unwrap_or("".to_string());
+                if patch_as_text.len() < 10 { continue; }
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
