@@ -15,7 +15,7 @@ use std::env;
 //  The soft character limit of the input context size
 //   the max token size or word count for GPT4 is 8192
 //   the max token size or word count for GPT35Turbo is 4096
-static CHAR_SOFT_LIMIT : usize = 6000;
+static CHAR_SOFT_LIMIT : usize = 9000;
 static MODEL : ChatModel = ChatModel::GPT35Turbo;
 // static MODEL : ChatModel = ChatModel::GPT4;
 
@@ -92,7 +92,7 @@ async fn handler(
     };
 
     let chat_id = format!("PR#{pull_number}");
-    let system = &format!("You are an experienced software developer. You will act as a reviewer for a set of files and their patches related to the subject of \"{}\".", title);
+    let system = &format!("You are a senior software developer. You will review a source code file and its patch related to the subject of \"{}\".", title);
 
     let octo = get_octo(Some(String::from(login)));
     let pulls = octo.pulls(owner, repo);
