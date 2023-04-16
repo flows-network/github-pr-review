@@ -123,12 +123,11 @@ async fn handler(
                 resp.push_str("](");
                 resp.push_str(f.blob_url.as_str());
                 resp.push_str(")\n\n");
-                resp.push_str(raw_url.as_str());
-                resp.push_str("\n");
-                resp.push_str(t_file_as_text);
-                resp.push_str("\n\n");
+                // resp.push_str(raw_url.as_str());
+                // resp.push_str("\n");
+                // resp.push_str(t_file_as_text);
+                // resp.push_str("\n\n");
 
-                /*
                 let co = ChatOptions {
                     model: MODEL,
                     restart: true,
@@ -143,6 +142,7 @@ async fn handler(
                     resp.push_str("\n\n");
                 }
 
+                /*
                 let co = ChatOptions {
                     model: MODEL,
                     restart: false,
