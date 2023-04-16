@@ -94,7 +94,6 @@ async fn handler(
                     continue;
                 }
                 
-                /*
                 // The f.raw_url is a redirect. So, we need to construct our own here.
                 let contents_url = f.contents_url.as_str();
                 if contents_url.len() < 40 { continue; }
@@ -102,6 +101,7 @@ async fn handler(
                 let raw_url = format!(
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
+                /*
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
                 match Request::new(&file_uri)
@@ -126,6 +126,8 @@ async fn handler(
                 resp.push_str(f.blob_url.as_str());
                 resp.push_str(")\n\n");
                 resp.push_str(raw_url);
+                resp.push_str("\n");
+                resp.push_str(contents_url);
 
                 /*
                 let co = ChatOptions {
