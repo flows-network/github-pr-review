@@ -88,7 +88,7 @@ async fn handler(
     resp.push_str("Hello, I am a [serverless review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
     match pulls.list_files(pull_number).await {
         Ok(files) => {
-            for f in files.items {
+            for f in files {
                 let filename = &f.filename;
                 if filename.ends_with(".md") || filename.ends_with(".js") || filename.ends_with(".css") || filename.ends_with(".html") || filename.ends_with(".htm") {
                     continue;
