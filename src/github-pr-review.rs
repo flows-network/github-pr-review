@@ -101,7 +101,6 @@ async fn handler(
                 let raw_url = format!(
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
-                /*
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
                 match Request::new(&file_uri)
@@ -118,7 +117,6 @@ async fn handler(
                 }
                 let file_as_text = String::from_utf8_lossy(&writer);
                 let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
-                */
 
                 resp.push_str("## [");
                 resp.push_str(filename);
@@ -127,7 +125,8 @@ async fn handler(
                 resp.push_str(")\n\n");
                 resp.push_str(raw_url.as_str());
                 resp.push_str("\n");
-                resp.push_str(contents_url);
+                resp.push_str(t_file_as_text);
+                resp.push_str("\n\n");
 
                 /*
                 let co = ChatOptions {
