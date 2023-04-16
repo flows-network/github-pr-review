@@ -90,7 +90,7 @@ async fn handler(
         Ok(files) => {
             for f in files.items {
                 let filename = &f.filename;
-                if filename.ends_with(".md") || filename.ends_with(".txt") || filename.ends_with(".html") || filename.ends_with(".htm") {
+                if filename.ends_with(".md") || filename.ends_with(".js") || filename.ends_with(".css") || filename.ends_with(".html") || filename.ends_with(".htm") {
                     continue;
                 }
                 
@@ -99,19 +99,23 @@ async fn handler(
                 if contents_url.len() < 40 { continue; }
                 let hash = &contents_url[(contents_url.len() - 40)..];
                 let raw_url = format!(
-                    "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, &f.filename
+                    "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
-                let _ = Request::new(&file_uri)
+                match Request::new(&file_uri)
                     .method(Method::GET)
                     .header("Accept", "plain/text")
                     .header("User-Agent", "Flows Network Connector")
                     .send(&mut writer)
-                    .map_err(|_e| {})
-                    .unwrap();
+                    .map_err(|_e| {}) {
+                        Err(_e) => {
+                            write_error_log!("Cannot get file");
+                            continue;
+                        }
+                        _ => {}
+                }
                 let file_as_text = String::from_utf8_lossy(&writer);
-                if file_as_text.len() < 10 { continue; }
                 let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
 
                 resp.push_str("## [");
