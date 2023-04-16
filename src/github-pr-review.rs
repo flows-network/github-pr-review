@@ -142,22 +142,19 @@ async fn handler(
                     resp.push_str("\n\n");
                 }
 
-                /*
                 let co = ChatOptions {
                     model: MODEL,
                     restart: false,
-                    system_prompt: None,
+                    system_prompt: Some(system),
                     retry_times: 3,
                 };
                 let patch_as_text = f.patch.unwrap_or("".to_string());
-                if patch_as_text.len() < 10 { continue; }
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
-                */
             }
         },
         Err(_error) => {
