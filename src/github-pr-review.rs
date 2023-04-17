@@ -123,10 +123,6 @@ async fn handler(
                 resp.push_str("](");
                 resp.push_str(f.blob_url.as_str());
                 resp.push_str(")\n\n");
-                // resp.push_str(raw_url.as_str());
-                // resp.push_str("\n");
-                // resp.push_str(t_file_as_text);
-                // resp.push_str("\n\n");
 
                 let co = ChatOptions {
                     model: MODEL,
@@ -135,8 +131,6 @@ async fn handler(
                     retry_times: 3,
                 };
                 let question = "Review the following source code snippet and look for potential problems. Do NOT comment on the completeness of the snippet.\n\n".to_string() + t_file_as_text;
-                // resp.push_str(&question);
-                // resp.push_str("\n\n");
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
@@ -151,14 +145,10 @@ async fn handler(
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
-                resp.push_str(&question);
-                resp.push_str("\n\n");
-                /*
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
-                */
             }
         },
         Err(_error) => {
@@ -168,7 +158,13 @@ async fn handler(
 
     // Send the entire response to GitHub PR
     let issues = octo.issues(owner, repo);
-    issues.create_comment(pull_number, resp).await.unwrap();
+    let resp_c= resp.clone();
+    match issues.create_comment(pull_number, resp).await {
+        Err(_error) => {
+            write_error_log!(format!("Error posting resp: {}", &resp_c));
+        }
+        _ => {}
+    }
 }
 
 fn truncate(s: &str, max_chars: usize) -> &str {
