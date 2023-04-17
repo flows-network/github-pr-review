@@ -124,7 +124,6 @@ async fn handler(
                 resp.push_str(f.blob_url.as_str());
                 resp.push_str(")\n\n");
 
-                /*
                 let co = ChatOptions {
                     model: MODEL,
                     restart: true,
@@ -136,7 +135,6 @@ async fn handler(
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
-                */
 
                 let co = ChatOptions {
                     model: MODEL,
@@ -160,10 +158,9 @@ async fn handler(
 
     // Send the entire response to GitHub PR
     let issues = octo.issues(owner, repo);
-    let resp_c= resp.clone();
     match issues.create_comment(pull_number, resp).await {
-        Err(_error) => {
-            write_error_log!(format!("Error posting resp: {}", &resp_c));
+        Err(error) => {
+            write_error_log!(format!("Error posting resp: {}", error));
         }
         _ => {}
     }
