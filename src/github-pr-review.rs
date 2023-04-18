@@ -9,7 +9,7 @@ use http_req::{
     request::{Method, Request},
     uri::Uri,
 };
-use openai_flows::{chat_completion_default_key, ChatModel, ChatOptions};
+use openai_flows::{chat_completion, ChatModel, ChatOptions};
 use std::env;
 
 //  The soft character limit of the input context size
@@ -139,7 +139,7 @@ async fn handler(
                     retry_times: 3,
                 };
                 let question = "Review the following source code snippet and look for potential problems. Do NOT comment on the completeness of the snippet.\n\n".to_string() + t_file_as_text;
-                if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
+                if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
@@ -153,7 +153,7 @@ async fn handler(
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
-                if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
+                if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
