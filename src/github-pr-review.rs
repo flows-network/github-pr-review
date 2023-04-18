@@ -25,8 +25,8 @@ pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
 
     let login = env::var("login").unwrap_or("juntao".to_string());
-    let owner = env::var("owner").unwrap_or("juntao".to_string());
-    let repo = env::var("repo").unwrap_or("test".to_string());
+    let owner = env::var("owner").unwrap_or("flows-network".to_string());
+    let repo = env::var("repo").unwrap_or("review-any-pr-with-chatgpt".to_string());
     let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows review".to_string());
 
     listen_to_event(
