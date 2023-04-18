@@ -87,6 +87,7 @@ async fn handler(
     let pull_number = pull_url_components[pull_url_components.len() - 1].parse::<u64>().unwrap();
     let pull_repo = pull_url_components[pull_url_components.len() - 3];
     let pull_owner = pull_url_components[pull_url_components.len() - 4];
+    write_error_log!(format!("{pull_owner}/{pull_repo}/pull/{pull_number}"));
     let chat_id = format!("PR#{pull_number}");
     let system = "You are a senior software developer experienced in code reviews.";
 
