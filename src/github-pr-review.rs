@@ -2,7 +2,7 @@ use dotenv::dotenv;
 use flowsnet_platform_sdk::write_error_log;
 use github_flows::{
     get_octo, listen_to_event,
-    octocrab::models::events::payload::{IssueCommentEventAction, PullRequestEventAction},
+    octocrab::models::events::payload::{IssueCommentEventAction, IssuesEventAction},
     EventPayload,
 };
 use http_req::{
@@ -29,16 +29,13 @@ pub async fn run() -> anyhow::Result<()> {
     let repo = env::var("repo").unwrap_or("test".to_string());
     let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows review".to_string());
 
-    let events = vec!["pull_request", "issue_comment"];
-    listen_to_event(&login, &owner, &repo, events, |payload| {
-        handler(
-            &login,
-            &owner,
-            &repo,
-            &trigger_phrase,
-            payload,
-        )
-    })
+    listen_to_event(
+        &login,
+        &owner,
+        &repo,
+        vec!["issue_comment", "issues"],
+        |payload| handler(&login, &owner, &repo, &trigger_phrase, payload),
+    )
     .await;
 
     Ok(())
@@ -51,7 +48,16 @@ async fn handler(
     trigger_phrase: &str,
     payload: EventPayload,
 ) {
-    let (title, pull_number, _contributor) = match payload {
+    let (pull_url, issue_number, _contributor) = match payload {
+        EventPayload::IssuesEvent(e) => {
+            if e.action != IssuesEventAction::Opened {
+                // Only responds to newly opened issues
+                write_error_log!("Received an ignorable event for issues.");
+                return;
+            }
+            (e.issue.title, e.issue.number, e.issue.user.login)
+        },
+
         EventPayload::IssueCommentEvent(e) => {
             if e.action == IssueCommentEventAction::Deleted {
                 write_error_log!("Deleted issue event");
@@ -60,9 +66,6 @@ async fn handler(
 
             let body = e.comment.body.unwrap_or_default();
 
-            // if e.comment.performed_via_github_app.is_some() {
-            //     return;
-            // }
             // TODO: Makeshift but operational
             if body.starts_with("Hello, I am a [serverless review bot]") {
                 write_error_log!("Ignore comment via bot");
@@ -79,11 +82,16 @@ async fn handler(
         _ => return,
     };
 
+    let pull_url_components : Vec<&str> = pull_url.split("/").collect();
+    if pull_url_components.len() < 5 { return; }
+    let pull_number = pull_url_components[pull_url_components.len() - 1].parse::<u64>().unwrap();
+    let pull_repo = pull_url_components[pull_url_components.len() - 3];
+    let pull_owner = pull_url_components[pull_url_components.len() - 4];
     let chat_id = format!("PR#{pull_number}");
-    let system = &format!("You are a senior software developer. You will review a source code file and its patch related to the subject of \"{}\".", title);
+    let system = "You are a senior software developer experienced in code reviews.";
 
     let octo = get_octo(Some(String::from(login)));
-    let pulls = octo.pulls(owner, repo);
+    let pulls = octo.pulls(pull_owner, pull_repo);
     let mut resp = String::new();
     resp.push_str("Hello, I am a [serverless review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
     match pulls.list_files(pull_number).await {
@@ -158,7 +166,7 @@ async fn handler(
 
     // Send the entire response to GitHub PR
     let issues = octo.issues(owner, repo);
-    match issues.create_comment(pull_number, resp).await {
+    match issues.create_comment(issue_number, resp).await {
         Err(error) => {
             write_error_log!(format!("Error posting resp: {}", error));
         }
