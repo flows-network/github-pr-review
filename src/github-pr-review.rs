@@ -136,6 +136,7 @@ async fn handler(
                     resp.push_str("\n\n");
                 }
 
+                /*
                 let co = ChatOptions {
                     model: MODEL,
                     restart: false,
@@ -149,6 +150,7 @@ async fn handler(
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
+                */
             }
         },
         Err(_error) => {
