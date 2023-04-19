@@ -82,7 +82,6 @@ async fn handler(
         _ => return,
     };
 
-    /*
     let pull_url_components : Vec<&str> = pull_url.split("/").collect();
     if pull_url_components.len() < 5 { return; }
     let pull_number = pull_url_components[pull_url_components.len() - 1].parse::<u64>().unwrap();
@@ -90,15 +89,12 @@ async fn handler(
     let pull_owner = pull_url_components[pull_url_components.len() - 4];
     let chat_id = format!("PR#{pull_number}");
     let system = "You are a senior software developer experienced in code reviews.";
-    */
 
     let octo = get_octo(Some(String::from(login)));
     // let pulls = octo.pulls(pull_owner, pull_repo);
     let mut resp = String::new();
     resp.push_str("Hello, I am a [serverless review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
-    resp.push_str(&pull_url);
 
-    /*
     match pulls.list_files(pull_number).await {
         Ok(files) => {
             for f in files.items {
@@ -163,12 +159,14 @@ async fn handler(
                     resp.push_str("\n\n");
                 }
             }
+            resp.push_str("cc ");
+            resp.push_str(&pull_url);
+            resp.push_str("\n");
         },
         Err(_error) => {
             write_error_log!("Cannot get file list");
         }
     }
-    */
 
     // Send the entire response to GitHub PR
     let issues = octo.issues(owner, repo);
