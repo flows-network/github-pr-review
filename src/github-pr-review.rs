@@ -91,7 +91,7 @@ async fn handler(
     let system = "You are a senior software developer experienced in code reviews.";
 
     let octo = get_octo(Some(String::from(login)));
-    // let pulls = octo.pulls(pull_owner, pull_repo);
+    let pulls = octo.pulls(pull_owner, pull_repo);
     let mut resp = String::new();
     resp.push_str("Hello, I am a [serverless review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
 
