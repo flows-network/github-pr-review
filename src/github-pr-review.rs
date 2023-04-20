@@ -102,30 +102,32 @@ async fn handler(
         Ok(files) => {
             for f in files.items {
                 let filename = &f.filename;
-                if filename.ends_with(".md") || filename.ends_with(".txt") || filename.ends_with(".html") || filename.ends_with(".htm") {
+                if filename.ends_with(".md") || filename.ends_with(".js") || filename.ends_with(".css") || filename.ends_with(".html") || filename.ends_with(".htm") {
                     continue;
                 }
-                
+
                 // The f.raw_url is a redirect. So, we need to construct our own here.
                 let contents_url = f.contents_url.as_str();
+                if contents_url.len() < 40 { continue; }
                 let hash = &contents_url[(contents_url.len() - 40)..];
                 let raw_url = format!(
-                    "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, &f.filename
+                    "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
-                let _ = Request::new(&file_uri)
+                match Request::new(&file_uri)
                     .method(Method::GET)
                     .header("Accept", "plain/text")
                     .header("User-Agent", "Flows Network Connector")
                     .send(&mut writer)
-                    .map_err(|_e| {})
-                    .unwrap();
-                let file_as_text = String::from_utf8_lossy(&writer);
-                if file_as_text.len() < 10 {
-                    // if the file is empty (e.g., a non text file) or very small, we will skip
-                    continue;
+                    .map_err(|_e| {}) {
+                        Err(_e) => {
+                            write_error_log!("Cannot get file");
+                            continue;
+                        }
+                        _ => {}
                 }
+                let file_as_text = String::from_utf8_lossy(&writer);
                 let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
 
                 resp.push_str("## [");
@@ -140,9 +142,7 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "Review the following source code snippet and look for potential problems. Do NOT comment on the completeness of the snippet.\n\n".to_string() + t_file_as_text;
-                // resp.push_str(&question);
-                // resp.push_str("\n\n");
+                let question = "Review the following source code and look for potential problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
@@ -151,10 +151,10 @@ async fn handler(
                 let co = ChatOptions {
                     model: MODEL,
                     restart: false,
-                    system_prompt: None,
+                    system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let patch_as_text = f.patch.unwrap();
+                let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
@@ -170,7 +170,12 @@ async fn handler(
 
     // Send the entire response to GitHub PR
     let issues = octo.issues(owner, repo);
-    issues.create_comment(pull_number, resp).await.unwrap();
+    match issues.create_comment(pull_number, resp).await {
+        Err(error) => {
+            write_error_log!(format!("Error posting resp: {}", error));
+        }
+        _ => {}
+    }
 }
 
 fn truncate(s: &str, max_chars: usize) -> &str {
