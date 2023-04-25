@@ -2,7 +2,8 @@ use dotenv::dotenv;
 use flowsnet_platform_sdk::write_error_log;
 use github_flows::{
     get_octo, listen_to_event,
-    octocrab::models::events::payload::{IssueCommentEventAction, PullRequestEventAction},
+    octocrab::models::events::payload::IssueCommentEventAction,
+    octocrab::models::CommentId,
     EventPayload,
 };
 use http_req::{
@@ -64,7 +65,7 @@ async fn handler(
             //     return;
             // }
             // TODO: Makeshift but operational
-            if body.starts_with("Hello, I am a [serverless review bot]") {
+            if body.starts_with("Hello, I am a [code review bot]") {
                 write_error_log!("Ignore comment via bot");
                 return;
             };
@@ -81,11 +82,23 @@ async fn handler(
 
     let chat_id = format!("PR#{pull_number}");
     let system = &format!("You are a senior software developer. You will review a source code file and its patch related to the subject of \"{}\".", title);
-
     let octo = get_octo(Some(String::from(login)));
+
+    let issues = octo.issues(owner, repo);
+    let comment_id: CommentId;
+    match issues.create_comment(pull_number, "Hello, I am a [code review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/).\n\nIt could take a few minutes for me to analyze this PR. Relax, grab a cup of coffee and check back later. Thanks!").await {
+        Ok(comment) => {
+            comment_id = comment.id;
+        }
+        Err(error) => {
+            write_error_log!(format!("Error posting comment: {}", error));
+            return;
+        }
+    }
+
     let pulls = octo.pulls(owner, repo);
     let mut resp = String::new();
-    resp.push_str("Hello, I am a [serverless review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
+    resp.push_str("Hello, I am a [code review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
     match pulls.list_files(pull_number).await {
         Ok(files) => {
             for f in files.items {
@@ -157,8 +170,8 @@ async fn handler(
     }
 
     // Send the entire response to GitHub PR
-    let issues = octo.issues(owner, repo);
-    match issues.create_comment(pull_number, resp).await {
+    // issues.create_comment(pull_number, resp).await.unwrap();
+    match issues.update_comment(comment_id, resp).await {
         Err(error) => {
             write_error_log!(format!("Error posting resp: {}", error));
         }
