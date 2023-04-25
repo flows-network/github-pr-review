@@ -3,6 +3,7 @@ use flowsnet_platform_sdk::write_error_log;
 use github_flows::{
     get_octo, listen_to_event,
     octocrab::models::events::payload::{IssueCommentEventAction, IssuesEventAction},
+    octocrab::models::CommentId,
     EventPayload,
 };
 use http_req::{
@@ -67,7 +68,7 @@ async fn handler(
             let body = e.comment.body.unwrap_or_default();
 
             // TODO: Makeshift but operational
-            if body.starts_with("Hello, I am a [serverless review bot]") {
+            if body.starts_with("Hello, I am a [code review bot]") {
                 write_error_log!("Ignore comment via bot");
                 return;
             };
@@ -91,9 +92,21 @@ async fn handler(
     let system = "You are a senior software developer experienced in code reviews.";
 
     let octo = get_octo(Some(String::from(login)));
+    let issues = octo.issues(owner, repo);
+    let comment_id: CommentId;
+    match issues.create_comment(issue_number, "Hello, I am a [code review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/).\n\nIt could take a few minutes for me to analyze this PR. Relax, grab a cup of coffee and check back later. Thanks!").await {
+        Ok(comment) => {
+            comment_id = comment.id;
+        }
+        Err(error) => {
+            write_error_log!(format!("Error posting comment: {}", error));
+            return;
+        }
+    }
+
     let pulls = octo.pulls(pull_owner, pull_repo);
     let mut resp = String::new();
-    resp.push_str("Hello, I am a [serverless review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
+    resp.push_str("Hello, I am a [code review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
 
     match pulls.list_files(pull_number).await {
         Ok(files) => {
@@ -169,8 +182,7 @@ async fn handler(
     }
 
     // Send the entire response to GitHub PR
-    let issues = octo.issues(owner, repo);
-    match issues.create_comment(issue_number, resp).await {
+    match issues.update_comment(comment_id, resp).await {
         Err(error) => {
             write_error_log!(format!("Error posting resp: {}", error));
         }
