@@ -130,7 +130,7 @@ async fn handler(
                     system_prompt: Some(system),
                     retry_times: 3,
                 };
-                let question = "Review the following source code snippet and look for potential problems. Do NOT comment on the completeness of the snippet.\n\n".to_string() + t_file_as_text;
+                let question = "Review the following source code and look for potential problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
                 if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
