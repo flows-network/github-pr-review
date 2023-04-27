@@ -17,14 +17,14 @@
 * [[C++] Create an OpenCV plugin for WasmEdge](https://github.com/WasmEdge/WasmEdge/pull/2403#issuecomment-1509595889)
 * [[Haskell] Improve WasmEdge Component Model tooling](https://github.com/second-state/witc/pull/73#issuecomment-1509586233) -- it even suggests how to rewrite the submitted code!
 
+This bot reviews changed files in the PR. Alternatively, you can use [this bot](https://github.com/flows-network/github-pr-summary) to summarize commits in the PR.
+
 ## How it works
 
 This flow function (or 🤖) will be triggered when a new PR is raised in the designated GitHub repo. The flow function collects the changed files in the PR, and asks ChatGPT/4 to review and summarize it. The result is then posted back to the PR as a comment. The flow functions are written in Rust and run in hosted [WasmEdge Runtimes](https://github.com/wasmedge) on [flows.network](https://flows.network/).
 
 * The code review comment is updated automatically every time a new commit is pushed to this PR.
-* A new code review could be triggered when someone says a magic *trigger phrase* in the PR's comments section. The default trigger phrase is "flows summarize".
-
-The GitHub repo is connected to the flow function via the [flows.network](https://flows.network/) platform. The trigger phrase can be configured in [flows.network](https://flows.network/).
+* A new code review could be triggered when someone says a magic *trigger phrase* in the PR's comments section. The default trigger phrase is "flows review".
 
 ### Deploy your own code review bot in 3 simple steps
 
@@ -49,7 +49,7 @@ The 🤖 is designed to run on [flows.network](https://flows.network/), a server
 
 ### 1 Fork this repo
 
-Fork [this repo](https://github.com/flows-network/github-pr-summary/) into your own GitHub account.
+Fork [this repo](https://github.com/flows-network/github-pr-review/) into your own GitHub account.
 
 > If your OpenAI API key has GPT4 access, you can change `GPT35Turbo` to `GPT4` in your fork of the source code. GPT4 provides substantially better code reviews, but it is also 10x more expensive.
 
@@ -69,7 +69,7 @@ Go to [flows.network](https://flows.network/) to deploy your own flow function (
 * `login`: Your personal GitHub id. The GitHub app will act as you when posting reviews.
 * `owner`: GitHub org for the repo *you want to deploy the 🤖 on*.
 * `repo` : GitHub repo *you want to deploy the 🤖 on*.
-* `trigger_phrase`: The magic phrase to trigger a review from a PR comment.
+* `trigger_phrase`: Optional -- The magic phrase to trigger a review from a PR comment.
 
 > Let's see an example. You forked the flow function source code to `my-name/github-pr-summary` and would like to deploy the bot to summarize PRs on `my-company/work-project` repo. Here `login = my-name`, `owner = my-company` and `repo = work-project`.
 
