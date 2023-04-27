@@ -12,10 +12,11 @@
   </a>
 </p>
 
-[Deploy this function on flows.network](#deploy-the-pr-summary-app-for-your-github-repo), and you will get a GitHub 🤖 to review changed source code files in Pull Requests. It helps busy open source contributors understand and make decisions on PRs faster! Here are some examples!
+[Deploy this function on flows.network](#deploy-the-pr-summary-app-for-your-github-repo), and you will get a GitHub 🤖 to review changed source code files in Pull Requests. It helps busy open source contributors understand and make decisions on PRs faster! Here are some examples. Notice how the code review bot provides code snippets to show you how to improve the code!
 
+* [[C++] Improve the WasmEdge C++ SDK](https://github.com/WasmEdge/WasmEdge/pull/2428#issuecomment-1524733889)
 * [[C++] Create an OpenCV plugin for WasmEdge](https://github.com/WasmEdge/WasmEdge/pull/2403#issuecomment-1509595889)
-* [[Haskell] Improve WasmEdge Component Model tooling](https://github.com/second-state/witc/pull/73#issuecomment-1509586233) -- it even suggests how to rewrite the submitted code!
+* [[Haskell] Improve WasmEdge Component Model tooling](https://github.com/second-state/witc/pull/73#issuecomment-1509586233)
 
 This bot reviews changed files in the PR. Alternatively, you can use [this bot](https://github.com/flows-network/github-pr-summary) to summarize commits in the PR.
 
