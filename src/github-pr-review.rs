@@ -16,9 +16,9 @@ use std::env;
 //  The soft character limit of the input context size
 //   the max token size or word count for GPT4 is 8192
 //   the max token size or word count for GPT35Turbo is 4096
-static CHAR_SOFT_LIMIT : usize = 18000;
-// static MODEL : ChatModel = ChatModel::GPT35Turbo;
-static MODEL : ChatModel = ChatModel::GPT4;
+static CHAR_SOFT_LIMIT : usize = 9000;
+static MODEL : ChatModel = ChatModel::GPT35Turbo;
+// static MODEL : ChatModel = ChatModel::GPT4;
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -144,7 +144,7 @@ async fn handler(
                     retry_times: 3,
                 };
                 let question = "Review the following source code and look for potential problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
-                if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
+                if let Some(r) = chat_completion("Default", &chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
@@ -158,7 +158,7 @@ async fn handler(
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
-                if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
+                if let Some(r) = chat_completion("Default", &chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 }
