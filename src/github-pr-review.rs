@@ -154,11 +154,14 @@ async fn handler(
                     retry_times: 3,
                 };
                 let question = "Review the following source code and look for potential problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
-                if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
-                    resp.push_str(&r.choice);
-                    resp.push_str("\n\n");
-                } else {
-                    log::error!("OpenAI returns error for file review for {}", filename);
+                match chat_completion("gpt4", &chat_id, &question, &co).await {
+                    Ok(r) => {
+                        resp.push_str(&r.choice);
+                        resp.push_str("\n\n");
+                    }
+                    Err(e) => {
+                        log::error!("OpenAI returns error for file review for {}: {}", filename, e);
+                    }
                 }
 
                 let co = ChatOptions {
@@ -170,11 +173,14 @@ async fn handler(
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
-                if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
-                    resp.push_str(&r.choice);
-                    resp.push_str("\n\n");
-                } else {
-                    log::error!("OpenAI returns error for patch review for {}", filename);
+                match chat_completion("gpt4", &chat_id, &question, &co).await {
+                    Ok(r) => {
+                        resp.push_str(&r.choice);
+                        resp.push_str("\n\n");
+                    }
+                    Err(e) => {
+                        log::error!("OpenAI returns error for file review for {}: {}", filename, e);
+                    }
                 }
             }
             resp.push_str("cc ");
