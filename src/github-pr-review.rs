@@ -185,6 +185,8 @@ async fn handler(
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
+                } else {
+                    log::error!("OpenAI returns error for file review for {}", filename);
                 }
 
                 let co = ChatOptions {
@@ -199,6 +201,8 @@ async fn handler(
                 if let Some(r) = chat_completion_default_key(&chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
+                } else {
+                    log::error!("OpenAI returns error for file review for {}", filename);
                 }
             }
         },
