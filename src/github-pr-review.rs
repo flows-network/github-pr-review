@@ -133,7 +133,7 @@ async fn handler(
                     .send(&mut writer)
                     .map_err(|_e| {}) {
                         Err(_e) => {
-                            log::warn!("Cannot get file");
+                            log::error!("Cannot get file");
                             continue;
                         }
                         _ => {}
@@ -158,7 +158,7 @@ async fn handler(
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 } else {
-                    log::warn!("OpenAI returns error for file review for {}", filename);
+                    log::error!("OpenAI returns error for file review for {}", filename);
                 }
 
                 let co = ChatOptions {
@@ -174,7 +174,7 @@ async fn handler(
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
                 } else {
-                    log::warn!("OpenAI returns error for patch review for {}", filename);
+                    log::error!("OpenAI returns error for patch review for {}", filename);
                 }
             }
             resp.push_str("cc ");
