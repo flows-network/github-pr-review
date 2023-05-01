@@ -1,5 +1,5 @@
 use dotenv::dotenv;
-use flowsnet_platform_sdk::write_error_log;
+use flowsnet_platform_sdk::logger;
 use github_flows::{
     get_octo, listen_to_event,
     octocrab::models::events::payload::IssueCommentEventAction,
@@ -16,14 +16,15 @@ use std::env;
 //  The soft character limit of the input context size
 //   the max token size or word count for GPT4 is 8192
 //   the max token size or word count for GPT35Turbo is 4096
-static CHAR_SOFT_LIMIT : usize = 9000;
-static MODEL : ChatModel = ChatModel::GPT35Turbo;
-// static MODEL : ChatModel = ChatModel::GPT4;
+static CHAR_SOFT_LIMIT : usize = 18000;
+// static MODEL : ChatModel = ChatModel::GPT35Turbo;
+static MODEL : ChatModel = ChatModel::GPT4;
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
+    logger::init();
 
     let login = env::var("login").unwrap_or("juntao".to_string());
     let owner = env::var("owner").unwrap_or("juntao".to_string());
@@ -55,7 +56,7 @@ async fn handler(
     let (title, pull_number, _contributor) = match payload {
         EventPayload::IssueCommentEvent(e) => {
             if e.action == IssueCommentEventAction::Deleted {
-                write_error_log!("Deleted issue event");
+                log::info!("Deleted issue event");
                 return;
             }
 
@@ -66,12 +67,12 @@ async fn handler(
             // }
             // TODO: Makeshift but operational
             if body.starts_with("Hello, I am a [code review bot]") {
-                write_error_log!("Ignore comment via bot");
+                log::info!("Ignore comment via bot");
                 return;
             };
 
             if !body.to_lowercase().contains(&trigger_phrase.to_lowercase()) {
-                write_error_log!(format!("Ignore the comment, raw: {}", body));
+                log::info!("Ignore the comment without magic words");
                 return;
             }
 
@@ -91,7 +92,7 @@ async fn handler(
             comment_id = comment.id;
         }
         Err(error) => {
-            write_error_log!(format!("Error posting comment: {}", error));
+            log::error!("Error posting comment: {}", error);
             return;
         }
     }
@@ -123,7 +124,7 @@ async fn handler(
                     .send(&mut writer)
                     .map_err(|_e| {}) {
                         Err(_e) => {
-                            write_error_log!("Cannot get file");
+                            log::error!("Cannot get file");
                             continue;
                         }
                         _ => {}
@@ -144,9 +145,11 @@ async fn handler(
                     retry_times: 3,
                 };
                 let question = "Review the following source code and look for potential problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
-                if let Some(r) = chat_completion("Default", &chat_id, &question, &co) {
+                if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
+                } else {
+                    log::error!("OpenAI returns error for file review for {}", filename);
                 }
 
                 let co = ChatOptions {
@@ -158,14 +161,16 @@ async fn handler(
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
-                if let Some(r) = chat_completion("Default", &chat_id, &question, &co) {
+                if let Some(r) = chat_completion("gpt4", &chat_id, &question, &co) {
                     resp.push_str(&r.choice);
                     resp.push_str("\n\n");
+                } else {
+                    log::error!("OpenAI returns error for file review for {}", filename);
                 }
             }
         },
         Err(_error) => {
-            write_error_log!("Cannot get file list");
+            log::error!("Cannot get file list");
         }
     }
 
@@ -173,7 +178,7 @@ async fn handler(
     // issues.create_comment(pull_number, resp).await.unwrap();
     match issues.update_comment(comment_id, resp).await {
         Err(error) => {
-            write_error_log!(format!("Error posting resp: {}", error));
+            log::error!("Error posting resp: {}", error);
         }
         _ => {}
     }
