@@ -1,5 +1,5 @@
 use dotenv::dotenv;
-use flowsnet_platform_sdk::write_error_log;
+use flowsnet_platform_sdk::logger;
 use github_flows::{
     get_octo, listen_to_event,
     octocrab::models::events::payload::{IssueCommentEventAction, PullRequestEventAction},
@@ -24,6 +24,7 @@ static MODEL : ChatModel = ChatModel::GPT35Turbo;
 #[tokio::main(flavor = "current_thread")]
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
+    logger::init();
 
     let login = env::var("login").unwrap_or("juntao".to_string());
     let owner = env::var("owner").unwrap_or("juntao".to_string());
@@ -60,7 +61,7 @@ async fn handler(
             } else if e.action == PullRequestEventAction::Synchronize {
                 new_commit = true;
             } else {
-                write_error_log!("Not a Opened pull event");
+                log::info!("Not a Opened or Synchronize event for PR");
                 return;
             }
             let p = e.pull_request;
@@ -72,7 +73,7 @@ async fn handler(
         }
         EventPayload::IssueCommentEvent(e) => {
             if e.action == IssueCommentEventAction::Deleted {
-                write_error_log!("Deleted issue event");
+                log::info!("Deleted issue event");
                 return;
             }
 
@@ -83,12 +84,12 @@ async fn handler(
             // }
             // TODO: Makeshift but operational
             if body.starts_with("Hello, I am a [code review bot]") {
-                write_error_log!("Ignore comment via bot");
+                log::info!("Ignore comment via bot");
                 return;
             };
 
             if !body.to_lowercase().contains(&trigger_phrase.to_lowercase()) {
-                write_error_log!(format!("Ignore the comment, raw: {}", body));
+                log::info!("Ignore the comment without magic words");
                 return;
             }
 
@@ -115,7 +116,7 @@ async fn handler(
                 }
             }
             Err(error) => {
-                write_error_log!(format!("Error getting comments: {}", error));
+                log::error!("Error getting comments: {}", error);
                 return;
             }
         }
@@ -126,7 +127,7 @@ async fn handler(
                 comment_id = comment.id;
             }
             Err(error) => {
-                write_error_log!(format!("Error posting comment: {}", error));
+                log::error!("Error posting comment: {}", error);
                 return;
             }
         }
@@ -160,7 +161,7 @@ async fn handler(
                     .send(&mut writer)
                     .map_err(|_e| {}) {
                         Err(_e) => {
-                            write_error_log!("Cannot get file");
+                            log::error!("Cannot get file");
                             continue;
                         }
                         _ => {}
@@ -202,7 +203,7 @@ async fn handler(
             }
         },
         Err(_error) => {
-            write_error_log!("Cannot get file list");
+            log::error!("Cannot get file list");
         }
     }
 
@@ -210,7 +211,7 @@ async fn handler(
     // issues.create_comment(pull_number, resp).await.unwrap();
     match issues.update_comment(comment_id, resp).await {
         Err(error) => {
-            write_error_log!(format!("Error posting resp: {}", error));
+            log::error!("Error posting resp: {}", error);
         }
         _ => {}
     }
