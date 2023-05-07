@@ -25,6 +25,7 @@ static MODEL : ChatModel = ChatModel::GPT35Turbo;
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
     logger::init();
+    log::info!("Running pr-review/main");
 
     let login = env::var("github_login").unwrap_or("juntao".to_string());
     let owner = env::var("github_owner").unwrap_or("juntao".to_string());
@@ -53,6 +54,7 @@ async fn handler(
     trigger_phrase: &str,
     payload: EventPayload,
 ) {
+    log::debug!("Received payload: {:?}", payload);
     let mut new_commit : bool = false;
     let (title, pull_number, _contributor) = match payload {
         EventPayload::PullRequestEvent(e) => {
