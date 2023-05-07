@@ -25,6 +25,7 @@ static MODEL : ChatModel = ChatModel::GPT4;
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
     logger::init();
+    log::info!("Running pr-review/playground");
 
     let login = env::var("github_login").unwrap_or("juntao".to_string());
     let owner = env::var("github_owner").unwrap_or("flows-network".to_string());
@@ -50,6 +51,7 @@ async fn handler(
     trigger_phrase: &str,
     payload: EventPayload,
 ) {
+    log::debug!("Received payload: {:?}", payload);
     let (pull_url, issue_number, _contributor) = match payload {
         EventPayload::IssuesEvent(e) => {
             if e.action != IssuesEventAction::Opened {
