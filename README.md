@@ -47,7 +47,6 @@ You will also need to sign into [flows.network](https://flows.network/) from you
 
 * `github_owner`: GitHub org for the repo *you want to deploy the 🤖 on*.
 * `github_repo` : GitHub repo *you want to deploy the 🤖 on*.
-* `trigger_phrase`: Optional -- The magic phrase to trigger a review from a PR comment.
 
 > Let's see an example. You would like to deploy the bot to review code in PRs on `WasmEdge/wasmedge_hyper_demo` repo. Here `github_owner = WasmEdge` and `github_repo = wasmedge_hyper_demo`.
 
@@ -71,7 +70,7 @@ After that, click on the "Check" button to go to the flow details page. As soon 
 
 <img width="1148" alt="image" src="https://user-images.githubusercontent.com/45785633/229329247-16273aec-f89b-4375-bf2b-4ffce5e35a33.png">
 
-## What's next?
+## FAQ
 
 ### Change the magic phrase
 
