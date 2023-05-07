@@ -25,6 +25,7 @@ static MODEL : ChatModel = ChatModel::GPT4;
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
     logger::init();
+    log::info!("Running pr-review/comment-trigger-only");
 
     let login = env::var("github_login").unwrap_or("juntao".to_string());
     let owner = env::var("github_owner").unwrap_or("juntao".to_string());
@@ -53,6 +54,7 @@ async fn handler(
     trigger_phrase: &str,
     payload: EventPayload,
 ) {
+    log::debug!("Received payload: {:?}", payload);
     let (title, pull_number, _contributor) = match payload {
         EventPayload::IssueCommentEvent(e) => {
             if e.action == IssueCommentEventAction::Deleted {
