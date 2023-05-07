@@ -71,6 +71,22 @@ After that, click on the "Check" button to go to the flow details page. As soon 
 
 <img width="1148" alt="image" src="https://user-images.githubusercontent.com/45785633/229329247-16273aec-f89b-4375-bf2b-4ffce5e35a33.png">
 
+## What's next?
+
+### Change the magic phrase
+
+Go to the "Settings" tab of the running flow function for the bot, you can add an optional `trigger_phrase` config. The value of this config is the magic phrase the user will say to trigger a review from a PR comment.
+
+### Use the bot on multiple repos
+
+You can create a new flow and import the source code repo for the bot (i.e., the repo you cloned from the template). Then, you can use the flow config to specify the `github_owner` and `github_repo` to point to the target repo you need to deploy the bot on. Deploy and authorize access to that target repo.
+
+You can repeat this for all target repos you would like to deploy this bot on.
+
+### Customize the bot
+
+The bot's source code is available in the GitHub repo you cloned from the template. Feel free to make changes to the source code (e.g., model, context length, API key and prompts) to fit your own needs. If you need help, [ask in Discord](https://discord.gg/ccZn9ZMfFf)!
+
 ## Credits
 
 This flow function is originally created by [Jay Chen](https://github.com/jaykchen), and [jinser](https://github.com/jetjinser) made significant contributions to optimize the event triggers from GitHub.
