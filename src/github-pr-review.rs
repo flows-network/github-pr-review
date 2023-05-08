@@ -60,7 +60,7 @@ async fn handler(
                 log::debug!("Deleted issue comment");
                 return;
             }
-            log::debug!("Other event for issue comment");
+            log::debug!("Updated issue comment");
 
             let body = e.comment.body.unwrap_or_default();
 
