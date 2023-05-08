@@ -17,7 +17,7 @@ anyhow = "1"
 flowsnet-platform-sdk = "0.1"
 lazy_static = "1.4.0"
 regex = "1.7.1"
-openai-flows = "0.5"
+openai-flows = "0.7"
 words-count = "0.1.4"
 http_req_wasi = { version = "0.10.2", features = ["wasmedge_ssl"] }
 log = "0.4"

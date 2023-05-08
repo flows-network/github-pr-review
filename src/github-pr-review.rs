@@ -10,7 +10,10 @@ use http_req::{
     request::{Method, Request},
     uri::Uri,
 };
-use openai_flows::{chat_completion_default_key, ChatModel, ChatOptions};
+use openai_flows::{
+    chat::{ChatModel, ChatOptions},
+    OpenAIFlows,
+};
 use std::env;
 
 //  The soft character limit of the input context size
@@ -104,8 +107,10 @@ async fn handler(
 
     let chat_id = format!("PR#{pull_number}");
     let system = &format!("You are a senior software developer. You will review a source code file and its patch related to the subject of \"{}\".", title);
-    let octo = get_octo(Some(String::from(login)));
+    let mut openai = OpenAIFlows::new();
+    openai.set_retry_times(3);
 
+    let octo = get_octo(Some(String::from(login)));
     let issues = octo.issues(owner, repo);
     let mut comment_id: CommentId = 0u64.into();
     if new_commit {
@@ -184,10 +189,9 @@ async fn handler(
                     model: MODEL,
                     restart: true,
                     system_prompt: Some(system),
-                    retry_times: 3,
                 };
                 let question = "Review the following source code and look for potential problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
-                match chat_completion_default_key(&chat_id, &question, &co).await {
+                match openai.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
@@ -203,12 +207,11 @@ async fn handler(
                     model: MODEL,
                     restart: false,
                     system_prompt: Some(system),
-                    retry_times: 3,
                 };
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
-                match chat_completion_default_key(&chat_id, &question, &co).await {
+                match openai.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
