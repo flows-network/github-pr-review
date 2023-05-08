@@ -25,7 +25,7 @@ static MODEL : ChatModel = ChatModel::GPT4;
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
     logger::init();
-    log::info!("Running pr-review/comment-trigger-only");
+    log::info!("Running github-pr-review/comment-trigger-only");
 
     let login = env::var("github_login").unwrap_or("juntao".to_string());
     let owner = env::var("github_owner").unwrap_or("juntao".to_string());
@@ -54,13 +54,13 @@ async fn handler(
     trigger_phrase: &str,
     payload: EventPayload,
 ) {
-    log::debug!("Received payload: {:?}", payload);
     let (title, pull_number, _contributor) = match payload {
         EventPayload::IssueCommentEvent(e) => {
             if e.action == IssueCommentEventAction::Deleted {
-                log::info!("Deleted issue event");
+                log::debug!("Deleted issue comment");
                 return;
             }
+            log::debug!("Other event for issue comment");
 
             let body = e.comment.body.unwrap_or_default();
 
@@ -140,6 +140,7 @@ async fn handler(
                 resp.push_str(f.blob_url.as_str());
                 resp.push_str(")\n\n");
 
+                log::debug!("Sending file to OpenAI: {}", filename);
                 let co = ChatOptions {
                     model: MODEL,
                     restart: true,
@@ -151,12 +152,14 @@ async fn handler(
                     Ok(r) => {
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
+                        log::debug!("Received OpenAI resp for file: {}", filename);
                     }
                     Err(e) => {
                         log::error!("OpenAI returns error for file review for {}: {}", filename, e);
                     }
                 }
 
+                log::debug!("Sending patch to OpenAI: {}", filename);
                 let co = ChatOptions {
                     model: MODEL,
                     restart: false,
@@ -170,6 +173,7 @@ async fn handler(
                     Ok(r) => {
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
+                        log::debug!("Received OpenAI resp for patch: {}", filename);
                     }
                     Err(e) => {
                         log::error!("OpenAI returns error for file review for {}: {}", filename, e);
