@@ -4,7 +4,7 @@ use github_flows::{
     get_octo, listen_to_event,
     octocrab::models::events::payload::{IssueCommentEventAction, PullRequestEventAction},
     octocrab::models::CommentId,
-    EventPayload,
+    EventPayload, GithubLogin
 };
 use http_req::{
     request::{Method, Request},
@@ -30,15 +30,13 @@ pub async fn run() -> anyhow::Result<()> {
     logger::init();
     log::debug!("Running github-pr-review/main");
 
-    let login = env::var("github_login").unwrap_or("juntao".to_string());
     let owner = env::var("github_owner").unwrap_or("juntao".to_string());
     let repo = env::var("github_repo").unwrap_or("test".to_string());
     let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows review".to_string());
 
     let events = vec!["pull_request", "issue_comment"];
-    listen_to_event(&login, &owner, &repo, events, |payload| {
+    listen_to_event(&GithubLogin::Default, &owner, &repo, events, |payload| {
         handler(
-            &login,
             &owner,
             &repo,
             &trigger_phrase,
@@ -51,7 +49,6 @@ pub async fn run() -> anyhow::Result<()> {
 }
 
 async fn handler(
-    login: &str,
     owner: &str,
     repo: &str,
     trigger_phrase: &str,
@@ -110,7 +107,7 @@ async fn handler(
     let mut openai = OpenAIFlows::new();
     openai.set_retry_times(3);
 
-    let octo = get_octo(Some(String::from(login)));
+    let octo = get_octo(&GithubLogin::Default);
     let issues = octo.issues(owner, repo);
     let mut comment_id: CommentId = 0u64.into();
     if new_commit {
