@@ -20,13 +20,13 @@
   </a>
 </p>
 
-[部署此函数到 flows.network](#deploy-your-own-code-review-bot-in-3-simple-steps)，你将获得一个 GitHub 机器人来检查代码和总结拉取请求。它可以帮助忙碌的开源贡献者更快地理解并对 PR 采取行动!下面是一些示例!
+[部署此函数到 flows.network](#deploy-your-own-code-review-bot-in-3-simple-steps)，你将获得一个帮你检查代码和总结拉取请求的 GitHub 机器人。它可以帮助忙碌的开源贡献者更快地理解并对 PR 采取行动!下面是一些示例!
 
 * [[C++] 优化 WasmEdge C++ SDK](https://github.com/WasmEdge/WasmEdge/pull/2428#issuecomment-1524733889)
 * [[C++] 为 WasmEdge 创建 OpenCV plugin](https://github.com/WasmEdge/WasmEdge/pull/2403#issuecomment-1509595889)
 * [[Haskell] 优化 WasmEdge Component Model tooling](https://github.com/second-state/witc/pull/73#issuecomment-1509586233)
 
-该机器人可以检查 PR 中更改的文件。 或者，可以使用 [this bot](https://github.com/flows-network/github-pr-summary) 来总结 PR 中提交的信息。
+该机器人可以检查 PR 中更改的文件。 或者，可以使用[这个 bot](https://github.com/flows-network/github-pr-summary) 来总结 PR 中提交的信息。
 
 ## 如何工作
 
