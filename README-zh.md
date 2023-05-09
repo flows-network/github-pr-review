@@ -1,8 +1,8 @@
-<span style="float: right">
+<div style="text-align: right">
 
 [In English](https://github.com/flows-network/github-pr-summary/blob/main/README.md)
 
-</span>
+</div>
 
 
 
