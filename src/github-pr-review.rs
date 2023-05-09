@@ -4,7 +4,7 @@ use github_flows::{
     get_octo, listen_to_event,
     octocrab::models::events::payload::{IssueCommentEventAction, PullRequestEventAction},
     octocrab::models::CommentId,
-    EventPayload, GithubLogin
+    EventPayload, GithubLogin,
 };
 use http_req::{
     request::{Method, Request},
@@ -28,7 +28,7 @@ static MODEL : ChatModel = ChatModel::GPT35Turbo;
 pub async fn run() -> anyhow::Result<()> {
     dotenv().ok();
     logger::init();
-    log::debug!("Running github-pr-review/main");
+    log::debug!("Running function at github-pr-review/main");
 
     let owner = env::var("github_owner").unwrap_or("juntao".to_string());
     let repo = env::var("github_repo").unwrap_or("test".to_string());
