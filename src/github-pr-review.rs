@@ -4,13 +4,16 @@ use github_flows::{
     get_octo, listen_to_event,
     octocrab::models::events::payload::{IssueCommentEventAction, IssuesEventAction},
     octocrab::models::CommentId,
-    EventPayload,
+    EventPayload, GithubLogin
 };
 use http_req::{
     request::{Method, Request},
     uri::Uri,
 };
-use openai_flows::{chat_completion, ChatModel, ChatOptions};
+use openai_flows::{
+    chat::{ChatModel, ChatOptions},
+    OpenAIFlows, FlowsAccount,
+};
 use std::env;
 
 //  The soft character limit of the input context size
@@ -27,17 +30,16 @@ pub async fn run() -> anyhow::Result<()> {
     logger::init();
     log::debug!("Running github-pr-review/playground");
 
-    let login = env::var("github_login").unwrap_or("juntao".to_string());
     let owner = env::var("github_owner").unwrap_or("flows-network".to_string());
     let repo = env::var("github_repo").unwrap_or("review-any-pr-with-chatgpt".to_string());
     let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows review".to_string());
 
     listen_to_event(
-        &login,
+        &GithubLogin::Default,
         &owner,
         &repo,
         vec!["issue_comment", "issues"],
-        |payload| handler(&login, &owner, &repo, &trigger_phrase, payload),
+        |payload| handler(&owner, &repo, &trigger_phrase, payload),
     )
     .await;
 
@@ -45,7 +47,6 @@ pub async fn run() -> anyhow::Result<()> {
 }
 
 async fn handler(
-    login: &str,
     owner: &str,
     repo: &str,
     trigger_phrase: &str,
@@ -94,8 +95,11 @@ async fn handler(
     let pull_owner = pull_url_components[pull_url_components.len() - 4];
     let chat_id = format!("PR#{pull_number}");
     let system = "You are a senior software developer experienced in code reviews.";
+    let mut openai = OpenAIFlows::new();
+    openai.set_flows_account(FlowsAccount::Provided("gpt4".to_string()));
+    openai.set_retry_times(3);
 
-    let octo = get_octo(Some(String::from(login)));
+    let octo = get_octo(&GithubLogin::Default);
     let issues = octo.issues(owner, repo);
     let comment_id: CommentId;
     match issues.create_comment(issue_number, "Hello, I am a [code review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/).\n\nIt could take a few minutes for me to analyze this PR. Relax, grab a cup of coffee and check back later. Thanks!").await {
@@ -155,10 +159,9 @@ async fn handler(
                     model: MODEL,
                     restart: true,
                     system_prompt: Some(system),
-                    retry_times: 3,
                 };
                 let question = "Review the following source code and look for potential problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
-                match chat_completion("gpt4", &chat_id, &question, &co).await {
+                match openai.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
@@ -174,12 +177,11 @@ async fn handler(
                     model: MODEL,
                     restart: false,
                     system_prompt: Some(system),
-                    retry_times: 3,
                 };
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
                 let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
-                match chat_completion("gpt4", &chat_id, &question, &co).await {
+                match openai.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
