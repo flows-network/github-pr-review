@@ -1,6 +1,6 @@
-<div style="text-align: right">
+<div align="right">
 
-[In English](https://github.com/flows-network/github-pr-review/blob/main/README-zh.md)
+[English](README.md)
 
 </div>
 
