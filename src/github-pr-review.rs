@@ -4,7 +4,7 @@ use github_flows::{
     get_octo, listen_to_event,
     octocrab::models::events::payload::{IssueCommentEventAction, PullRequestEventAction},
     octocrab::models::CommentId,
-    EventPayload, GithubLogin,
+    EventPayload, GithubLogin
 };
 use http_req::{
     request::{Method, Request},
@@ -35,6 +35,7 @@ pub async fn run() -> anyhow::Result<()> {
     let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows review".to_string());
 
     let events = vec!["pull_request", "issue_comment"];
+    println!("MAGIC");
     listen_to_event(&GithubLogin::Default, &owner, &repo, events, |payload| {
         handler(
             &owner,
