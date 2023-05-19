@@ -49,7 +49,7 @@
 
 [**单击此处**](https://flows.network/flow/createByTemplate/Code-Review-Pull-Request)
 
-请检查 `trigger_phrase` 变量。这是你在 PR 评论中手动召唤检查机器人的关键词。
+请检查 `trigger_phrase` 变量。这是你在 PR 评论中手动召唤检查机器人的魔法词。
 
 单击 **Create and Build** 按钮。
 
