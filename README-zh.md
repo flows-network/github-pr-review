@@ -55,7 +55,7 @@
 
 ### 2 添加你的 OpenAI API 密钥
 
-现在你将设置 OpenAI integration。单击“连接”，输入您的密钥并为其命名。
+现在你将设置 OpenAI integration。单击**连接**，输入您的密钥并为其命名。
 
 [<img width="450" alt="image" src="https://user-images.githubusercontent.com/45785633/222973214-ecd052dc-72c2-4711-90ec-db1ec9d5f24e.png">](https://user-images.githubusercontent.com/45785633/222973214-ecd052dc-72c2-4711-90ec-db1ec9d5f24e.png)
 
@@ -63,7 +63,7 @@
 
 ## 3 配置机器人以访问 GitHub
 
-接下来，[flows.network](https://flows.network/) 你需要告诉机器人它需要监视哪个 GitHub 存储库以查看即将到来的 PR 进行审查。
+接下来，你需要告诉机器人它需要监视哪个 GitHub repo以查看即将到来的 PR 进行检查。
 
 * `github_owner`:  *你想要为 repo 部署 🤖 的* GitHub org
 * `github_repo` :  *你想部署 🤖 的* GitHub repo
