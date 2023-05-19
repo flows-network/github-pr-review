@@ -51,9 +51,6 @@
 
 请检查 `trigger_phrase` 变量。这是你在 PR 评论中手动召唤检查机器人的关键词。
 
-* `github_owner`: 你想在其上部署🤖的 GitHub repo 的组织。*
-* `github_repo` : 你想在其上部署🤖的 GitHub repo。*
-
 单击 **Create and Build** 按钮。
 
 ### 2 添加你的 OpenAI API 密钥
@@ -73,7 +70,7 @@
 
 > 让我们看一个例子。您想要部署机器人来审查`WasmEdge/wasmedge_hyper_demo` repo 中的PR代码。这里 `github_owner = WasmEdge` 且 `github_repo = wasmedge_hyper_demo`。
 
-点击 **Connect** 或 **+ Add new authentication** 按钮，以使函数可以访问 GitHub repo 并部署🤖️。你将被重定向到一个新页面，在那里你必须授予 [flows.network](https://flows.network/) 对该 repo 的权限。
+点击 **Connect** 或 **+ Add new authentication** 按钮，以使函数可以访问 GitHub repo 并部署🤖️。你将被重定向到一个新页面，在此页面须授予 [flows.network](https://flows.network/) 对该 repo 的权限。
 
 [<img width="450" alt="image" src="https://github.com/flows-network/github-pr-summary/assets/45785633/6cefff19-9eeb-4533-a20b-03c6a9c89473">](https://github.com/flows-network/github-pr-summary/assets/45785633/6cefff19-9eeb-4533-a20b-03c6a9c89473)
 
