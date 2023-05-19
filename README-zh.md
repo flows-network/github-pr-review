@@ -63,7 +63,7 @@
 
 ## 3 配置机器人以访问 GitHub
 
-接下来，你需要告诉机器人它需要监视哪个 GitHub repo以查看即将到来的 PR 进行检查。
+接下来，你需要告诉机器人它需要监控哪个 GitHub repo 以查看即将到来的 PR 进行检查。
 
 * `github_owner`:  *你想要为 repo 部署 🤖 的* GitHub org
 * `github_repo` :  *你想部署 🤖 的* GitHub repo
@@ -95,7 +95,7 @@ flows.network 平台将自动检测并从你的更新的源代码重建机器人
 
 ### 在多个 repo 上使用机器人
 
-你可以手[动创建一个新的 flow](https://flows.network/flow/new)，并导入机器人的源代码 repo（即你从模板克隆的 repo）。然后，可以使用 flow config 来指定 `github_owner` 和 `github_repo`，以指向你需要在其上部署机器人的目标 repo。部署并授权访问该目标 repo。
+你可以手动[创建一个新的 flow](https://flows.network/flow/new)，并导入机器人的源代码 repo（即你从模板克隆的 repo）。然后，可以使用 flow config 来指定 `github_owner` 和 `github_repo`，以指向你需要在其上部署机器人的目标 repo。部署并授权访问该目标 repo。
 
 可以把这个机器人安装在你想要部署此机器人的所有目标 repo 上。
 
