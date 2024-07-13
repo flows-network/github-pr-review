@@ -37,7 +37,7 @@ async fn handler(payload: EventPayload) {
 
     let owner = env::var("github_owner").unwrap_or("juntao".to_string());
     let repo = env::var("github_repo").unwrap_or("test".to_string());
-    let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows summarize".to_string());
+    let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows review".to_string());
     let llm_api_endpoint = env::var("llm_api_endpoint").unwrap_or("https://api.openai.com/v1".to_string());
     let llm_model_name = env::var("llm_model_name").unwrap_or("gpt-4o".to_string());
     let llm_ctx_size = env::var("llm_ctx_size").unwrap_or("16384".to_string()).parse::<u32>().unwrap_or(0);
@@ -207,7 +207,7 @@ async fn handler(payload: EventPayload) {
                 };
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, ctx_size_char);
-                let question = "The following is a patch for the file. Please summarize key changes in the patch.\n\n".to_string() + t_patch_as_text;
+                let question = "The following is a change patch for the file. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
                 match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);
