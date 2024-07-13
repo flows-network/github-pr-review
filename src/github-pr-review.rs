@@ -1,61 +1,52 @@
 use dotenv::dotenv;
 use flowsnet_platform_sdk::logger;
 use github_flows::{
-    get_octo, listen_to_event,
-    octocrab::models::events::payload::{IssueCommentEventAction, PullRequestEventAction},
+    event_handler, get_octo, listen_to_event,
+    octocrab::models::events::payload::{EventPayload, IssueCommentEventAction, PullRequestEventAction},
     octocrab::models::CommentId,
-    EventPayload, GithubLogin
+    GithubLogin,
 };
+use llmservice_flows::{
+    chat::{ChatOptions},
+    LLMServiceFlows,
+};
+use std::env;
 use http_req::{
     request::{Method, Request},
     uri::Uri,
 };
-use openai_flows::{
-    chat::{ChatModel, ChatOptions},
-    OpenAIFlows,
-};
-use std::env;
-
-//  The soft character limit of the input context size
-//   the max token size or word count for GPT4 is 8192
-//   the max token size or word count for GPT35Turbo is 4096
-static CHAR_SOFT_LIMIT : usize = 9000;
-static MODEL : ChatModel = ChatModel::GPT35Turbo;
-// static MODEL : ChatModel = ChatModel::GPT4;
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
-pub async fn run() -> anyhow::Result<()> {
+pub async fn on_deploy() {
     dotenv().ok();
     logger::init();
-    log::debug!("Running function at github-pr-review/main");
+    log::debug!("Running github-pr-review/main");
 
     let owner = env::var("github_owner").unwrap_or("juntao".to_string());
     let repo = env::var("github_repo").unwrap_or("test".to_string());
-    let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows review".to_string());
 
-    let events = vec!["pull_request", "issue_comment"];
-    println!("MAGIC");
-    listen_to_event(&GithubLogin::Default, &owner, &repo, events, |payload| {
-        handler(
-            &owner,
-            &repo,
-            &trigger_phrase,
-            payload,
-        )
-    })
-    .await;
-
-    Ok(())
+    listen_to_event(&GithubLogin::Provided(owner.clone()), &owner, &repo, vec!["pull_request", "issue_comment"]).await;
 }
 
-async fn handler(
-    owner: &str,
-    repo: &str,
-    trigger_phrase: &str,
-    payload: EventPayload,
-) {
-    // log::debug!("Received payload: {:?}", payload);
+#[event_handler]
+async fn handler(payload: EventPayload) {
+    dotenv().ok();
+    logger::init();
+    log::debug!("Running github-pr-summary/main handler()");
+
+    let owner = env::var("github_owner").unwrap_or("juntao".to_string());
+    let repo = env::var("github_repo").unwrap_or("test".to_string());
+    let trigger_phrase = env::var("trigger_phrase").unwrap_or("flows summarize".to_string());
+    let llm_api_endpoint = env::var("llm_api_endpoint").unwrap_or("https://api.openai.com/v1".to_string());
+    let llm_model_name = env::var("llm_model_name").unwrap_or("gpt-4o".to_string());
+    let llm_ctx_size = env::var("llm_ctx_size").unwrap_or("16384".to_string()).parse::<u32>().unwrap_or(0);
+    let llm_api_key = env::var("llm_api_key").unwrap_or("LLAMAEDGE".to_string());
+
+    //  The soft character limit of the input context size
+    //  This is measured in chars. We set it to be 2x llm_ctx_size, which is measured in tokens.
+    let ctx_size_char : usize = (2 * llm_ctx_size).try_into().unwrap_or(0);
+
     let mut new_commit : bool = false;
     let (title, pull_number, _contributor) = match payload {
         EventPayload::PullRequestEvent(e) => {
@@ -104,12 +95,12 @@ async fn handler(
     };
 
     let chat_id = format!("PR#{pull_number}");
-    let system = &format!("You are a senior software developer. You will review a source code file and its patch related to the subject of \"{}\".", title);
-    let mut openai = OpenAIFlows::new();
-    openai.set_retry_times(3);
+    let system = &format!("You are an experienced software developer. You will review a source code file and its patch related to the subject of \"{}\". Please be as concise as possible while being accurate.", title);
+    let mut lf = LLMServiceFlows::new(&llm_api_endpoint);
+    lf.set_api_key(&llm_api_key);
 
-    let octo = get_octo(&GithubLogin::Default);
-    let issues = octo.issues(owner, repo);
+    let octo = get_octo(&GithubLogin::Provided(owner.clone()));
+    let issues = octo.issues(owner.clone(), repo.clone());
     let mut comment_id: CommentId = 0u64.into();
     if new_commit {
         // Find the first "Hello, I am a [code review bot]" comment to update
@@ -141,7 +132,7 @@ async fn handler(
     }
     if comment_id == 0u64.into() { return; }
 
-    let pulls = octo.pulls(owner, repo);
+    let pulls = octo.pulls(owner.clone(), repo.clone());
     let mut resp = String::new();
     resp.push_str("Hello, I am a [code review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
     match pulls.list_files(pull_number).await {
@@ -159,6 +150,10 @@ async fn handler(
                 let raw_url = format!(
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
+
+                // let res = reqwest::get(raw_url.as_str()).await.unwrap();
+                // let file_as_text = res.text().await.unwrap();
+                
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
                 match Request::new(&file_uri)
@@ -174,7 +169,7 @@ async fn handler(
                         _ => {}
                 }
                 let file_as_text = String::from_utf8_lossy(&writer);
-                let t_file_as_text = truncate(&file_as_text, CHAR_SOFT_LIMIT);
+                let t_file_as_text = truncate(&file_as_text, ctx_size_char);
 
                 resp.push_str("## [");
                 resp.push_str(filename);
@@ -182,41 +177,45 @@ async fn handler(
                 resp.push_str(f.blob_url.as_str());
                 resp.push_str(")\n\n");
 
-                log::debug!("Sending file to OpenAI: {}", filename);
+                log::debug!("Sending file to LLM: {}", filename);
                 let co = ChatOptions {
-                    model: MODEL,
+                    model: Some(&llm_model_name),
+                    token_limit: llm_ctx_size,
                     restart: true,
                     system_prompt: Some(system),
+                    ..Default::default()
                 };
-                let question = "Review the following source code and look for potential problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
-                match openai.chat_completion(&chat_id, &question, &co).await {
+                let question = "Review the following source code and look for potential problems. Be concise. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
+                match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
-                        log::debug!("Received OpenAI resp for file: {}", filename);
+                        log::debug!("Received LLM resp for file: {}", filename);
                     }
                     Err(e) => {
-                        log::error!("OpenAI returns error for file review for {}: {}", filename, e);
+                        log::error!("LLM returns error for file review for {}: {}", filename, e);
                     }
                 }
 
-                log::debug!("Sending patch to OpenAI: {}", filename);
+                log::debug!("Sending patch to LLM: {}", filename);
                 let co = ChatOptions {
-                    model: MODEL,
-                    restart: false,
+                    model: Some(&llm_model_name),
+                    token_limit: llm_ctx_size,
+                    restart: true,
                     system_prompt: Some(system),
+                    ..Default::default()
                 };
                 let patch_as_text = f.patch.unwrap_or("".to_string());
-                let t_patch_as_text = truncate(&patch_as_text, CHAR_SOFT_LIMIT);
-                let question = "The following is a patch. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
-                match openai.chat_completion(&chat_id, &question, &co).await {
+                let t_patch_as_text = truncate(&patch_as_text, ctx_size_char);
+                let question = "The following is a patch for the file. Please summarize key changes in the patch.\n\n".to_string() + t_patch_as_text;
+                match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
-                        log::debug!("Received OpenAI resp for patch: {}", filename);
+                        log::debug!("Received LLM resp for patch: {}", filename);
                     }
                     Err(e) => {
-                        log::error!("OpenAI returns error for patch review for {}: {}", filename, e);
+                        log::error!("LLM returns error for patch review for {}: {}", filename, e);
                     }
                 }
             }

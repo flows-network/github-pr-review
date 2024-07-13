@@ -9,15 +9,15 @@ crate-type = ["cdylib"]
 
 [dependencies]
 dotenv = "0.15.0"
-github-flows = "0.5"
+github-flows = "0.6"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.93"
-tokio_wasi = { version = "1.25.1", features = ["macros", "rt"] }
 anyhow = "1"
 flowsnet-platform-sdk = "0.1"
 lazy_static = "1.4.0"
 regex = "1.7.1"
-openai-flows = "0.7"
+llmservice-flows = "0.2.0"
 words-count = "0.1.4"
-http_req_wasi = { version = "0.10.2", features = ["wasmedge_ssl"] }
 log = "0.4"
+tokio_wasi = { version = "1.25.1", features = ["macros", "rt"] }
+http_req_wasi = { version = "0.10.2", features = ["wasmedge_ssl"] }
