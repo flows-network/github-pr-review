@@ -11,12 +11,10 @@ use llmservice_flows::{
     LLMServiceFlows,
 };
 use std::env;
-/*
 use http_req::{
     request::{Method, Request},
     uri::Uri,
 };
-*/
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -35,7 +33,7 @@ pub async fn on_deploy() {
 async fn handler(payload: EventPayload) {
     dotenv().ok();
     logger::init();
-    log::debug!("Running github-pr-summary/main handler()");
+    log::debug!("Running github-pr-review/main handler()");
 
     let owner = env::var("github_owner").unwrap_or("juntao".to_string());
     let repo = env::var("github_repo").unwrap_or("test".to_string());
@@ -153,9 +151,9 @@ async fn handler(payload: EventPayload) {
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
 
-                let res = reqwest::get(raw_url.as_str()).await.unwrap();
-                let file_as_text = res.text().await.unwrap();
-                /*
+                // let res = reqwest::get(raw_url.as_str()).await.unwrap();
+                // let file_as_text = res.text().await.unwrap();
+                
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
                 match Request::new(&file_uri)
@@ -171,7 +169,7 @@ async fn handler(payload: EventPayload) {
                         _ => {}
                 }
                 let file_as_text = String::from_utf8_lossy(&writer);
-                */
+                
                 let t_file_as_text = truncate(&file_as_text, ctx_size_char);
 
                 resp.push_str("## [");
