@@ -79,8 +79,8 @@ async fn handler(payload: EventPayload) {
             //     return;
             // }
             // TODO: Makeshift but operational
-            if body.starts_with("Hello, I am a [code review bot]") {
-                log::info!("Ignore comment via bot");
+            if body.starts_with("Hello, I am a [code review agent]") {
+                log::info!("Ignore comment via agent");
                 return;
             };
 
@@ -103,11 +103,11 @@ async fn handler(payload: EventPayload) {
     let issues = octo.issues(owner.clone(), repo.clone());
     let mut comment_id: CommentId = 0u64.into();
     if new_commit {
-        // Find the first "Hello, I am a [code review bot]" comment to update
+        // Find the first "Hello, I am a [code review agent]" comment to update
         match issues.list_comments(pull_number).send().await {
             Ok(comments) => {
                 for c in comments.items {
-                    if c.body.unwrap_or_default().starts_with("Hello, I am a [code review bot]") {
+                    if c.body.unwrap_or_default().starts_with("Hello, I am a [code review agent]") {
                         comment_id = c.id;
                         break;
                     }
@@ -120,7 +120,7 @@ async fn handler(payload: EventPayload) {
         }
     } else {
         // PR OPEN or Trigger phrase: create a new comment
-        match issues.create_comment(pull_number, "Hello, I am a [code review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/).\n\nIt could take a few minutes for me to analyze this PR. Relax, grab a cup of coffee and check back later. Thanks!").await {
+        match issues.create_comment(pull_number, "Hello, I am a [code review agent](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/).\n\nIt could take a few minutes for me to analyze this PR. Relax, grab a cup of coffee and check back later. Thanks!").await {
             Ok(comment) => {
                 comment_id = comment.id;
             }
@@ -134,7 +134,7 @@ async fn handler(payload: EventPayload) {
 
     let pulls = octo.pulls(owner.clone(), repo.clone());
     let mut resp = String::new();
-    resp.push_str("Hello, I am a [code review bot](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
+    resp.push_str("Hello, I am a [code review agent](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
     match pulls.list_files(pull_number).await {
         Ok(files) => {
             for f in files.items {
@@ -186,14 +186,20 @@ async fn handler(payload: EventPayload) {
                     system_prompt: Some(system),
                     ..Default::default()
                 };
-                let question = "Review the following source code and look for potential problems. Be very concise and only discuss serious problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
+                let question = "Review the following source code and look for bugs. Be very concise and explain each bug in one sentence. The code might be truncated. NEVER comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
                 match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
+                        resp.push_str("#### Potential issues");
+                        resp.push_str("\n\n");
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
                         log::debug!("Received LLM resp for file: {}", filename);
                     }
                     Err(e) => {
+                        resp.push_str("#### Potential issues");
+                        resp.push_str("\n\n");
+                        resp.push_str("N/A");
+                        resp.push_str("\n\n");
                         log::error!("LLM returns error for file review for {}: {}", filename, e);
                     }
                 }
@@ -208,14 +214,20 @@ async fn handler(payload: EventPayload) {
                 };
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, ctx_size_char);
-                let question = "The following is a change patch for the file. Please summarize key changes in short bullet points. Do not try to be comprehensive. Just summarize the most important changes.\n\n".to_string() + t_patch_as_text;
+                let question = "The following is a change patch for the file. Please summarize key changes in short bullet points.\n\n".to_string() + t_patch_as_text;
                 match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
+                        resp.push_str("#### Summary of changes");
+                        resp.push_str("\n\n");
                         resp.push_str(&r.choice);
                         resp.push_str("\n\n");
                         log::debug!("Received LLM resp for patch: {}", filename);
                     }
                     Err(e) => {
+                        resp.push_str("#### Summary of changes");
+                        resp.push_str("\n\n");
+                        resp.push_str("N/A");
+                        resp.push_str("\n\n");
                         log::error!("LLM returns error for patch review for {}: {}", filename, e);
                     }
                 }
