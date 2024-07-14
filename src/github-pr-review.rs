@@ -11,10 +11,12 @@ use llmservice_flows::{
     LLMServiceFlows,
 };
 use std::env;
+/*
 use http_req::{
     request::{Method, Request},
     uri::Uri,
 };
+*/
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -151,9 +153,9 @@ async fn handler(payload: EventPayload) {
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
 
-                // let res = reqwest::get(raw_url.as_str()).await.unwrap();
-                // let file_as_text = res.text().await.unwrap();
-                
+                let res = reqwest::get(raw_url.as_str()).await.unwrap();
+                let file_as_text = res.text().await.unwrap();
+                /*
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
                 match Request::new(&file_uri)
@@ -169,6 +171,7 @@ async fn handler(payload: EventPayload) {
                         _ => {}
                 }
                 let file_as_text = String::from_utf8_lossy(&writer);
+                */
                 let t_file_as_text = truncate(&file_as_text, ctx_size_char);
 
                 resp.push_str("## [");
@@ -185,7 +188,7 @@ async fn handler(payload: EventPayload) {
                     system_prompt: Some(system),
                     ..Default::default()
                 };
-                let question = "Review the following source code and look for potential problems. Be concise. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
+                let question = "Review the following source code and look for potential problems. Be very concise and only discuss serious problems. The code might be truncated. So, do NOT comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
                 match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);
@@ -207,7 +210,7 @@ async fn handler(payload: EventPayload) {
                 };
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, ctx_size_char);
-                let question = "The following is a change patch for the file. Please summarize key changes.\n\n".to_string() + t_patch_as_text;
+                let question = "The following is a change patch for the file. Please summarize key changes in short bullet points. Do not try to be comprehensive. Just summarize the most important changes.\n\n".to_string() + t_patch_as_text;
                 match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str(&r.choice);

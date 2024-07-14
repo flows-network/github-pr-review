@@ -16,7 +16,7 @@
   </a>
 </p>
 
-[Deploy this function on flows.network](#deploy-your-own-code-review-bot-in-3-simple-steps), and you will get a GitHub 🤖 to review changed source code files in Pull Requests. It helps busy open source contributors understand and make decisions on PRs faster! Here are some examples. Notice how the code review bot provides code snippets to show you how to improve the code!
+[Deploy this function on flows.network](#deploy-your-own-code-review-bot-in-3-simple-steps), and you will get an AI agent to review changed source code files in GitHub Pull Requests. It helps busy open source contributors understand and make decisions on PRs faster! Here are some examples. Notice how the code review bot provides code snippets to show you how to improve the code!
 
 * [[C++] Improve the WasmEdge C++ SDK](https://github.com/WasmEdge/WasmEdge/pull/2428#issuecomment-1524733889)
 * [[C++] Create an OpenCV plugin for WasmEdge](https://github.com/WasmEdge/WasmEdge/pull/2403#issuecomment-1509595889)
@@ -26,49 +26,53 @@ This bot reviews **changed files in the PR**. Alternatively, you can use [this b
 
 ## How it works
 
-This flow function (or 🤖) will be triggered when a new PR is raised in the designated GitHub repo. The flow function collects the changed files in the PR, and asks ChatGPT/4 to review and summarize it. The result is then posted back to the PR as a comment. The flow functions are written in Rust and run in hosted [WasmEdge Runtimes](https://github.com/wasmedge) on [flows.network](https://flows.network/).
+This flow function is triggered when a new PR is raised in the designated GitHub repo. The flow function collects the changed files in the PR, and asks ChatGPT/4 to review and summarize it. The result is then posted back to the PR as a comment. The flow functions are written in Rust and run in hosted [WasmEdge Runtimes](https://github.com/wasmedge) on [flows.network](https://flows.network/).
 
 * The code review comment is updated automatically every time a new commit is pushed to this PR.
 * A new code review could be triggered when someone says a magic *trigger phrase* in the PR's comments section. The default trigger phrase is "flows review".
 
 ## Deploy your own code review bot in 3 simple steps
 
-1. Create a bot from a template
-2. Add your OpenAI API key
-3. Configure the bot to review PRs on a specified GitHub repo
+1. Create a bot from your own GitHub repo
+2. Configure the bot to review PRs
+3. Connect to GitHub for access to the target repo
 
 ### 0 Prerequisites
 
-You will need to bring your own [OpenAI API key](https://openai.com/blog/openai-api). If you do not already have one, [sign up here](https://platform.openai.com/signup).
-
 You will also need to sign into [flows.network](https://flows.network/) from your GitHub account. It is free.
 
-### 1 Create a bot from a template
+### 1 Create a bot from your own GitHub repo
 
-[**Just click here**](https://flows.network/flow/createByTemplate/Code-Review-Pull-Request)
+Just fork this repo to your own GitHub account.
 
-Review the `trigger_phrase` variable. It is the magic words you type in a PR comment to manually summon the review bot.
+Then, from [flows.network](https://flows.network/), you can **Create a Flow** and select your forked repo. It will create a flow function based on the code in your forked repo.
 
-Click on the **Create and Build** button.
+Click on the **Advanced** button to see configuration options for the flow function.
 
-### 2 Add your OpenAI API key
-
-You will now set up OpenAI integration. Click on **Connect**, enter your key and give it a name.
-
-[<img width="450" alt="image" src="https://user-images.githubusercontent.com/45785633/222973214-ecd052dc-72c2-4711-90ec-db1ec9d5f24e.png">](https://user-images.githubusercontent.com/45785633/222973214-ecd052dc-72c2-4711-90ec-db1ec9d5f24e.png)
-
-Close the tab and go back to the flow.network page once you are done. Click on **Continue**.
-
-### 3 Configure the bot to access GitHub
+### 2 Configure the bot to review PRs
 
 Next, you will tell the bot which GitHub repo it needs to monitor for upcoming PRs to review.
 
-* `github_owner`: GitHub org for the repo *you want to deploy the 🤖 on*.
-* `github_repo` : GitHub repo *you want to deploy the 🤖 on*.
+* `github_owner`: GitHub org for the repo you want to review PRs
+* `github_repo` : GitHub repo you want to review PRs
+* `trigger_phrase` : The magic words to write in a PR comment to summon the bot. It defaults to "flows review".
 
 > Let's see an example. You would like to deploy the bot to review code in PRs on `WasmEdge/wasmedge_hyper_demo` repo. Here `github_owner = WasmEdge` and `github_repo = wasmedge_hyper_demo`.
 
-Click on the **Connect** or **+ Add new authentication** button to give the function access to the GitHub repo to deploy the 🤖. You'll be redirected to a new page where you must grant [flows.network](https://flows.network/) permission to the repo.
+And the LLM API service you want to use to review the PRs.
+
+* `llm_api_endpoint` : The OpenAI compatible API service endpoint for the LLM to conduct code reviews.
+* `llm_model_name` : The model name required by the API service.
+* `llm_ctx_size` : The context window size of the selected model.
+* `llm_api_key` : Optional: The API key if required by the LLM service provider.
+
+Click on the **Build** button.
+
+### 3 Connect to GitHub for access to the target repo
+
+Finally, the GitHub repo will need to give you access so that the flow function can access and review its PRs! In this next screen, you will connect to GitHub and authorize access.
+
+Click on the Connect or + Add new authentication button to give the function access to the GitHub repo. You'll be redirected to a new page where you must grant flows.network permission to the repo.
 
 [<img width="450" alt="image" src="https://github.com/flows-network/github-pr-summary/assets/45785633/6cefff19-9eeb-4533-a20b-03c6a9c89473">](https://github.com/flows-network/github-pr-summary/assets/45785633/6cefff19-9eeb-4533-a20b-03c6a9c89473)
 
@@ -85,12 +89,6 @@ This is it! You are now on the flow details page waiting for the flow function t
 ### Customize the bot
 
 The bot's source code is available in the GitHub repo you cloned from the template. Feel free to make changes to the source code (e.g., model, context length, API key and prompts) to fit your own needs. If you need help, [ask in Discord](https://discord.gg/ccZn9ZMfFf)!
-
-### Use GPT4
-
-By default, the bot uses GPT3.5 for code review. If your OpenAI API key has access to GPT4, you can open the `src/github-pr-review.rs` file
-in your cloned source code repo, and change `GPT35Turbo` to `GPT4` in the source code. Commit and push the change back to GitHub.
-The flows.network platform will automatically detect and rebuild the bot from your updated source code.
 
 ### Use the bot on multiple repos
 
