@@ -125,6 +125,7 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
         match issues.create_comment(pull_number, "Hello, I am a [code review agent](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/).\n\nIt could take a few minutes for me to analyze this PR. Relax, grab a cup of coffee and check back later. Thanks!").await {
             Ok(comment) => {
                 comment_id = comment.id;
+                log::debug!("comment_id={}", comment_id);
             }
             Err(error) => {
                 log::error!("Error posting comment: {}", error);
@@ -153,8 +154,11 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
 
+                log::debug!("Try to fetch the file: {}", filename);
                 let res = reqwest::get(raw_url.as_str()).await.unwrap();
+                log::debug!("Got file: {}", filename);
                 let file_as_text = res.text().await.unwrap();
+                log::debug!("Got text");
                 /*
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
