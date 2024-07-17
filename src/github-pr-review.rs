@@ -2,8 +2,9 @@ use dotenv::dotenv;
 use flowsnet_platform_sdk::logger;
 use github_flows::{
     event_handler, get_octo, listen_to_event,
-    octocrab::models::events::payload::{EventPayload, IssueCommentEventAction, PullRequestEventAction},
     octocrab::models::CommentId,
+    octocrab::models::webhook_events::{WebhookEvent, WebhookEventPayload},
+    octocrab::models::webhook_events::payload::{IssueCommentWebhookEventAction, PullRequestWebhookEventAction},
     GithubLogin,
 };
 use llmservice_flows::{
@@ -11,10 +12,10 @@ use llmservice_flows::{
     LLMServiceFlows,
 };
 use std::env;
-use http_req::{
-    request::{Method, Request},
-    uri::Uri,
-};
+// use http_req::{
+//     request::{Method, Request},
+//     uri::Uri,
+// };
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -30,7 +31,7 @@ pub async fn on_deploy() {
 }
 
 #[event_handler]
-async fn handler(payload: EventPayload) {
+async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
     dotenv().ok();
     logger::init();
     log::debug!("Running github-pr-review/main handler()");
@@ -47,12 +48,13 @@ async fn handler(payload: EventPayload) {
     //  This is measured in chars. We set it to be 2x llm_ctx_size, which is measured in tokens.
     let ctx_size_char : usize = (2 * llm_ctx_size).try_into().unwrap_or(0);
 
+    let payload = event.unwrap();
     let mut new_commit : bool = false;
-    let (title, pull_number, _contributor) = match payload {
-        EventPayload::PullRequestEvent(e) => {
-            if e.action == PullRequestEventAction::Opened {
+    let (title, pull_number, _contributor) = match payload.specific {
+        WebhookEventPayload::PullRequest(e) => {
+            if e.action == PullRequestWebhookEventAction::Opened {
                 log::debug!("Received payload: PR Opened");
-            } else if e.action == PullRequestEventAction::Synchronize {
+            } else if e.action == PullRequestWebhookEventAction::Synchronize {
                 new_commit = true;
                 log::debug!("Received payload: PR Synced");
             } else {
@@ -66,8 +68,8 @@ async fn handler(payload: EventPayload) {
                 p.user.unwrap().login,
             )
         }
-        EventPayload::IssueCommentEvent(e) => {
-            if e.action == IssueCommentEventAction::Deleted {
+        WebhookEventPayload::IssueComment(e) => {
+            if e.action == IssueCommentWebhookEventAction::Deleted {
                 log::debug!("Deleted issue comment");
                 return;
             }
@@ -151,9 +153,9 @@ async fn handler(payload: EventPayload) {
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
 
-                // let res = reqwest::get(raw_url.as_str()).await.unwrap();
-                // let file_as_text = res.text().await.unwrap();
-                
+                let res = reqwest::get(raw_url.as_str()).await.unwrap();
+                let file_as_text = res.text().await.unwrap();
+                /*
                 let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
                 let mut writer = Vec::new();
                 match Request::new(&file_uri)
@@ -169,7 +171,7 @@ async fn handler(payload: EventPayload) {
                         _ => {}
                 }
                 let file_as_text = String::from_utf8_lossy(&writer);
-                
+                */
                 let t_file_as_text = truncate(&file_as_text, ctx_size_char);
 
                 resp.push_str("## [");
