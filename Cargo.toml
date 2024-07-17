@@ -27,5 +27,3 @@ words-count = "0.1.4"
 log = "0.4"
 reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
 tokio = { version = "1", features = ["rt", "macros", "net", "time"] }
-# tokio_wasi = { version = "1.25.1", features = ["macros", "rt"] }
-# http_req_wasi = { version = "0.10.2", features = ["wasmedge_ssl"] }

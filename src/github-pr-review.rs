@@ -12,10 +12,6 @@ use llmservice_flows::{
     LLMServiceFlows,
 };
 use std::env;
-// use http_req::{
-//     request::{Method, Request},
-//     uri::Uri,
-// };
 
 #[no_mangle]
 #[tokio::main(flavor = "current_thread")]
@@ -154,28 +150,9 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
 
-                log::debug!("Try to fetch the file: {}", filename);
                 let res = reqwest::get(raw_url.as_str()).await.unwrap();
-                log::debug!("Got file: {}", filename);
+                log::debug!("Fetched file: {}", filename);
                 let file_as_text = res.text().await.unwrap();
-                log::debug!("Got text");
-                /*
-                let file_uri = Uri::try_from(raw_url.as_str()).unwrap();
-                let mut writer = Vec::new();
-                match Request::new(&file_uri)
-                    .method(Method::GET)
-                    .header("Accept", "plain/text")
-                    .header("User-Agent", "Flows Network Connector")
-                    .send(&mut writer)
-                    .map_err(|_e| {}) {
-                        Err(_e) => {
-                            log::error!("Cannot get file");
-                            continue;
-                        }
-                        _ => {}
-                }
-                let file_as_text = String::from_utf8_lossy(&writer);
-                */
                 let t_file_as_text = truncate(&file_as_text, ctx_size_char);
 
                 resp.push_str("## [");
