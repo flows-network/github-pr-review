@@ -121,7 +121,6 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
         match issues.create_comment(pull_number, "Hello, I am a [code review agent](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/).\n\nIt could take a few minutes for me to analyze this PR. Relax, grab a cup of coffee and check back later. Thanks!").await {
             Ok(comment) => {
                 comment_id = comment.id;
-                log::debug!("comment_id={}", comment_id);
             }
             Err(error) => {
                 log::error!("Error posting comment: {}", error);
