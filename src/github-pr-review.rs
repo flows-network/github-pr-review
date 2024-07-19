@@ -149,6 +149,7 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
                     "https://raw.githubusercontent.com/{owner}/{repo}/{}/{}", hash, filename
                 );
 
+                log::debug!("Fetching url: {}", raw_url);
                 let res = reqwest::get(raw_url.as_str()).await.unwrap();
                 log::debug!("Fetched file: {}", filename);
                 let file_as_text = res.text().await.unwrap();
