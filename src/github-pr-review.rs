@@ -135,6 +135,7 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
     resp.push_str("Hello, I am a [code review agent](https://github.com/flows-network/github-pr-review/) on [flows.network](https://flows.network/). Here are my reviews of changed source code files in this PR.\n\n------\n\n");
     match pulls.list_files(pull_number).await {
         Ok(files) => {
+            let client = reqwest::Client::new();
             for f in files.items {
                 let filename = &f.filename;
                 if filename.ends_with(".md") || filename.ends_with(".js") || filename.ends_with(".css") || filename.ends_with(".html") || filename.ends_with(".htm") {
@@ -150,7 +151,8 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
                 );
 
                 log::debug!("Fetching url: {}", raw_url);
-                let res = reqwest::get(raw_url.as_str()).await.unwrap();
+                // let res = reqwest::get(raw_url.as_str()).await.unwrap();
+                let res = client.get(raw_url.as_str()).send().await.unwrap();
                 log::debug!("Fetched file: {}", filename);
                 let file_as_text = res.text().await.unwrap();
                 let t_file_as_text = truncate(&file_as_text, ctx_size_char);
