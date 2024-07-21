@@ -151,7 +151,14 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
                 );
 
                 log::debug!("Fetching url: {}", raw_url);
-                let res = reqwest::get(raw_url.as_str()).await.unwrap();
+                let res = match reqwest::get(raw_url.as_str()).await {
+                    Ok(r) => r,
+                    Err(e) => {
+                        log::error!("Error fetching file {}: {}", filename, e);
+                        continue;
+                    }
+                };
+                // let res = reqwest::get(raw_url.as_str()).await.unwrap();
                 // let res = client.get(raw_url.as_str()).send().await.unwrap();
                 log::debug!("Fetched file: {}", filename);
                 let file_as_text = res.text().await.unwrap();
