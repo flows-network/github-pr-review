@@ -178,7 +178,7 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
                     system_prompt: Some(system),
                     ..Default::default()
                 };
-                let question = "Review the following source code and look for bugs. Be very concise and explain each bug in one sentence. The code might be truncated. NEVER comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
+                let question = "Review the following source code and report only major bugs or issues. The most important coding issues should be reported first. You should report NO MORE THAN 3 issues. Be very concise and explain each coding issue in one sentence. The code might be truncated. NEVER comment on the completeness of the source code.\n\n".to_string() + t_file_as_text;
                 match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str("#### Potential issues");
@@ -206,7 +206,7 @@ async fn handler(event: Result<WebhookEvent, serde_json::Error>) {
                 };
                 let patch_as_text = f.patch.unwrap_or("".to_string());
                 let t_patch_as_text = truncate(&patch_as_text, ctx_size_char);
-                let question = "The following is a change patch for the file. Please summarize key changes in short bullet points.\n\n".to_string() + t_patch_as_text;
+                let question = "The following is a change patch for the file. Please summarize key changes in short bullet points. List the most important changes first. You list should contain no more than the top 3 most important changes.  \n\n".to_string() + t_patch_as_text;
                 match lf.chat_completion(&chat_id, &question, &co).await {
                     Ok(r) => {
                         resp.push_str("#### Summary of changes");
