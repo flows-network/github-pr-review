@@ -51,7 +51,7 @@ in your forked repo. You can configure how it is summoned from the GitHub PR.
 
 * `trigger_phrase` : The magic words to write in a PR comment to summon the bot. It defaults to "flows review".
 
-Click on the **Build** button.
+Click on the **Create and Build** button.
 
 > Alternatively, fork this repo to your own GitHub account. Then, from [flows.network](https://flows.network/), you can **Create a Flow** and select your forked repo. It will create a flow function based on the code in your forked repo. Click on the **Advanced** button to see configuration options for the flow function.
 
@@ -63,10 +63,10 @@ Configure the LLM API service you want to use to review the PRs.
 
 * `llm_api_endpoint` : The OpenAI compatible API service endpoint for the LLM to conduct code reviews. We recommend the [Codetral Gaia node](https://github.com/GaiaNet-AI/node-configs/tree/main/codestral-0.1-22b): `https://codestral.us.gaianet.network/v1`
 * `llm_model_name` : The model name required by the API service. We recommend the following model name for the above public Gaia node: `codestral`
-* `llm_ctx_size` : The context window size of the selected model. The Codestral model has a 16k context window, which is `16384`.
-* `llm_api_key` : Optional: The API key if required by the LLM service provider. It is not required for the GaiaNet node.
+* `llm_ctx_size` : The context window size of the selected model. The Codestral model has a 32k context window, which is `32768`.
+* `llm_api_key` : Optional: The API key if required by the LLM service provider. It is not required for the Gaia node.
 
-Click on the **Next** button.
+Click on the **Continue** button.
 
 ### 3 Connect to GitHub for access to the target repo
 
